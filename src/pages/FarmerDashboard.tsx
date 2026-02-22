@@ -33,6 +33,8 @@ export default function FarmerDashboard() {
   });
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [listingImagesMap, setListingImagesMap] = useState<Record<string, any[]>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string>('');
 
   useEffect(() => {
     fetchListings();
@@ -75,58 +77,78 @@ export default function FarmerDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError('');
 
-    const listingData = {
-      farmer_id: profile!.id,
-      crop_name: formData.crop_name,
-      quantity: parseFloat(formData.quantity),
-      unit: formData.unit,
-      expected_price: parseFloat(formData.expected_price),
-      location: formData.location,
-      contact_number: formData.contact_number,
-      description: formData.description,
-    };
+    try {
+      const listingData = {
+        farmer_id: profile!.id,
+        crop_name: formData.crop_name,
+        quantity: parseFloat(formData.quantity),
+        unit: formData.unit,
+        expected_price: parseFloat(formData.expected_price),
+        location: formData.location,
+        contact_number: formData.contact_number,
+        description: formData.description,
+        quality_grade: formData.quality_grade,
+      };
 
-    let listingId = editingListing?.id;
-    if (editingListing) {
-      await supabase
-        .from('crop_listings')
-        .update(listingData)
-        .eq('id', editingListing.id);
-    } else {
-      const { data } = await supabase.from('crop_listings').insert([listingData]).select().single();
-      listingId = data?.id;
-    }
-
-    // Upload images if provided
-    if (uploadedFiles.length > 0 && listingId) {
-      try {
-        const uploadedUrls: string[] = [];
-        for (const file of uploadedFiles) {
-          const url = await uploadListingImage(profile!.id, listingId, file);
-          uploadedUrls.push(url);
-        }
-        await addListingImages(listingId, uploadedUrls);
-      } catch (err) {
-        console.error('Failed to upload images', err);
-        alert('Some images failed to upload');
+      let listingId = editingListing?.id;
+      if (editingListing) {
+        const { error } = await supabase
+          .from('crop_listings')
+          .update(listingData)
+          .eq('id', editingListing.id);
+        
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('crop_listings').insert([listingData]).select().single();
+        if (error) throw error;
+        listingId = data?.id;
       }
-    }
 
-    setFormData({
-      crop_name: '',
-      quantity: '',
-      unit: 'kg',
-      expected_price: '',
-      location: '',
-      contact_number: profile?.mobile_number || '',
-      description: '',
-      quality_grade: 'A',
-    });
-    setUploadedFiles([]);
-    setShowAddForm(false);
-    setEditingListing(null);
-    fetchListings();
+      // Upload images if provided
+      if (uploadedFiles.length > 0 && listingId) {
+        try {
+          const uploadedUrls: string[] = [];
+          for (const file of uploadedFiles) {
+            const url = await uploadListingImage(profile!.id, listingId, file);
+            uploadedUrls.push(url);
+          }
+          await addListingImages(listingId, uploadedUrls);
+        } catch (imgErr) {
+          console.error('Failed to upload images', imgErr);
+          setSubmitError(`Listing created but image upload failed: ${imgErr instanceof Error ? imgErr.message : 'Unknown error'}`);
+        }
+      }
+
+      // Success
+      if (!submitError) {
+        alert(editingListing ? 'Listing updated successfully!' : 'Listing created successfully!');
+      }
+
+      setFormData({
+        crop_name: '',
+        quantity: '',
+        unit: 'kg',
+        expected_price: '',
+        location: '',
+        contact_number: profile?.mobile_number || '',
+        description: '',
+        quality_grade: 'A',
+      });
+      setUploadedFiles([]);
+      setShowAddForm(false);
+      setEditingListing(null);
+      fetchListings();
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Failed to create listing. Please check all fields and try again.';
+      setSubmitError(errorMsg);
+      console.error('Listing submission error:', err);
+      alert(`Error: ${errorMsg}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleEdit = (listing: CropListing) => {
@@ -229,6 +251,13 @@ export default function FarmerDashboard() {
             <h2 className="text-xl font-bold mb-4">
               {editingListing ? t('edit') : t('addListing')}
             </h2>
+            
+            {submitError && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                {submitError}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -353,9 +382,14 @@ export default function FarmerDashboard() {
               <div className="md:col-span-2 flex gap-4">
                 <button
                   type="submit"
-                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition font-semibold"
+                  disabled={isSubmitting}
+                  className={`px-6 py-2 rounded-lg transition font-semibold ${
+                    isSubmitting
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
                 >
-                  {t('save')}
+                  {isSubmitting ? '⏳ Uploading...' : t('save')}
                 </button>
                 <button
                   type="button"

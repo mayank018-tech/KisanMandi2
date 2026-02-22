@@ -81,7 +81,7 @@ export default function Chat() {
   if (!user) return <div className="min-h-screen flex items-center justify-center">Please login to access chat.</div>;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row pb-16 md:pb-20">
       <div className={`md:w-1/3 bg-white shadow-md md:border-r border-gray-200 ${selectedConv ? 'hidden md:flex' : 'flex'} flex-col`}>
         <div className="p-4 border-b">
           <h2 className="text-xl font-bold">Messages</h2>

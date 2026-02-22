@@ -46,8 +46,8 @@ export default function MobileBottomNav({
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-40">
-        <nav className="flex items-center justify-around h-16">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg">
+        <nav className="flex items-center justify-around h-16 md:h-20 px-2 md:px-6">
           {visibleItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.id);
@@ -56,32 +56,33 @@ export default function MobileBottomNav({
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`flex-1 flex flex-col items-center justify-center gap-1 py-2 transition ${
+                className={`flex flex-col items-center justify-center gap-1 py-2 px-2 md:px-4 transition rounded-lg ${
                   active
-                    ? 'text-blue-600 border-t-2 border-blue-600'
-                    : 'text-gray-600 hover:text-gray-800'
+                    ? 'text-blue-600 bg-blue-50'
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
                 }`}
+                title={item.label}
               >
-                <Icon className="w-5 h-5" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                <span className="text-xs md:text-sm font-medium">{item.label}</span>
               </button>
             );
           })}
 
-          {/* Logout button (visible on mobile) */}
+          {/* Logout button */}
           <button
             onClick={onLogout}
-            className="flex-1 flex flex-col items-center justify-center gap-1 py-2 text-gray-600 hover:text-red-600 transition"
+            className="flex flex-col items-center justify-center gap-1 py-2 px-2 md:px-4 text-gray-600 hover:text-red-600 hover:bg-red-50 transition rounded-lg"
             title="Logout"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="text-xs font-medium">Exit</span>
+            <LogOut className="w-5 h-5 md:w-6 md:h-6" />
+            <span className="text-xs md:text-sm font-medium">Exit</span>
           </button>
         </nav>
       </div>
 
-      {/* Spacing to prevent content overlap on mobile only */}
-      <div className="h-16 md:hidden" />
+      {/* Spacing to prevent content overlap */}
+      <div className="h-16 md:h-20" />
     </>
   );
 }

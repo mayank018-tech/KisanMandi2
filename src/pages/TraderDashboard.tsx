@@ -148,7 +148,7 @@ export default function TraderDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
+    <div className="min-h-screen bg-gray-50 pb-16 md:pb-20">
       <header className="bg-blue-600 text-white shadow-lg sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold">{t('appName')} - Trader</h1>

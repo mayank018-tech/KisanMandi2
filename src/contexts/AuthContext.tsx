@@ -9,7 +9,7 @@ interface AuthContextType {
   user: User | null;
   profile: UserProfile | null;
   loading: boolean;
-  signUp: (email: string, password: string, profileData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, profileData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at' | 'email'>) => Promise<{ error: Error | null }>;
   signIn: (mobileNumber: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
@@ -65,10 +65,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const normalizeMobile = (m: string) => m.replace(/\D/g, '');
+
   const signUp = async (
     email: string,
     password: string,
-    profileData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>
+    profileData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at' | 'email'>
   ) => {
     try {
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -83,6 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: authData.user.id,
         email: email,
         ...profileData,
+        mobile_number: profileData.mobile_number ? normalizeMobile(profileData.mobile_number) : profileData.mobile_number,
       });
 
       if (profileError) throw profileError;
@@ -95,13 +98,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (mobileNumber: string, password: string) => {
     try {
-      const { data: profileData, error: profileError } = await supabase
+      // If user entered an email, sign in directly with it
+      if (mobileNumber.includes('@')) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: mobileNumber,
+          password,
+        });
+        if (signInError) throw signInError;
+        return { error: null };
+      }
+
+      const normalized = normalizeMobile(mobileNumber);
+
+      // Try exact match first
+      let profileData: any = null;
+      let profileError: any = null;
+
+      ({ data: profileData, error: profileError } = await supabase
         .from('user_profiles')
         .select('email')
-        .eq('mobile_number', mobileNumber)
-        .maybeSingle();
+        .eq('mobile_number', normalized)
+        .maybeSingle());
 
       if (profileError) throw profileError;
+
+      // Try like match (contains) if exact not found
+      if (!profileData) {
+        ({ data: profileData, error: profileError } = await supabase
+          .from('user_profiles')
+          .select('email')
+          .like('mobile_number', `%${normalized}`)
+          .maybeSingle());
+
+        if (profileError) throw profileError;
+      }
+
       if (!profileData || !profileData.email) throw new Error('Mobile number not found');
 
       const { error: signInError } = await supabase.auth.signInWithPassword({

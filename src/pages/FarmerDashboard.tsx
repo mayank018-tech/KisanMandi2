@@ -163,14 +163,14 @@ export default function FarmerDashboard() {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-wrap gap-3 mb-6">
           <button
             onClick={() => {
               setShowAddForm(!showAddForm);
               setShowOffers(false);
               setEditingListing(null);
             }}
-            className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition text-lg font-semibold"
+            className="w-full sm:w-auto flex items-center gap-2 bg-green-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-green-700 transition text-base sm:text-lg font-semibold"
           >
             <Plus className="w-5 h-5" />
             {t('addListing')}
@@ -180,14 +180,14 @@ export default function FarmerDashboard() {
               setShowOffers(!showOffers);
               setShowAddForm(false);
             }}
-            className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition text-lg font-semibold"
+            className="w-full sm:w-auto flex items-center gap-2 bg-blue-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-blue-700 transition text-base sm:text-lg font-semibold"
           >
             <MessageSquare className="w-5 h-5" />
             {t('receivedOffers')} ({offers.length})
           </button>
           <a
             href="/mandi-prices"
-            className="flex items-center gap-2 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition text-lg font-semibold"
+            className="w-full sm:w-auto flex items-center gap-2 bg-orange-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-orange-700 transition text-base sm:text-lg font-semibold"
           >
             <DollarSign className="w-5 h-5" />
             {t('mandiPrices')}

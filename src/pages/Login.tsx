@@ -29,10 +29,10 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4 py-6">
+      <div className="w-full max-w-md sm:max-w-lg mx-auto bg-white rounded-2xl shadow-xl p-6 sm:p-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-green-700">{t('appName')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-green-700">{t('appName')}</h1>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'gu')}
@@ -46,7 +46,7 @@ export default function Login() {
 
         <div className="flex items-center gap-3 mb-6">
           <LogIn className="w-8 h-8 text-green-600" />
-          <h2 className="text-2xl font-semibold text-gray-800">{t('login')}</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">{t('login')}</h2>
         </div>
 
         {error && (
@@ -65,7 +65,7 @@ export default function Login() {
               value={mobileNumber}
               onChange={(e) => setMobileNumber(e.target.value)}
               placeholder="9876543210"
-              className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 text-base sm:text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
           </div>
@@ -78,7 +78,7 @@ export default function Login() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-3 text-base sm:text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               required
             />
           </div>

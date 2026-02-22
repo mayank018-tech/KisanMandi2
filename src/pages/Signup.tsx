@@ -66,9 +66,9 @@ export default function Signup() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+      <div className="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-6 sm:p-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-green-700">{t('appName')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-green-700">{t('appName')}</h1>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'gu')}
@@ -82,7 +82,7 @@ export default function Signup() {
 
         <div className="flex items-center gap-3 mb-6">
           <UserPlus className="w-8 h-8 text-green-600" />
-          <h2 className="text-2xl font-semibold text-gray-800">{t('signup')}</h2>
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">{t('signup')}</h2>
         </div>
 
         {error && (
@@ -101,7 +101,7 @@ export default function Signup() {
                 type="text"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="w-full px-4 py-3 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-3 text-base sm:text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 required
               />
             </div>

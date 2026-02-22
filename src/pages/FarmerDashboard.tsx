@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { Plus, Edit2, Trash2, LogOut, DollarSign, MessageSquare } from 'lucide-react';
+import { uploadListingImage, addListingImages, getListingImages } from '../features/listings/api';
 import type { Database } from '../lib/database.types';
 
 type CropListing = Database['public']['Tables']['crop_listings']['Row'];
@@ -28,7 +29,10 @@ export default function FarmerDashboard() {
     location: '',
     contact_number: profile?.mobile_number || '',
     description: '',
+    quality_grade: 'A' as 'A' | 'B' | 'C',
   });
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [listingImagesMap, setListingImagesMap] = useState<Record<string, any[]>>({});
 
   useEffect(() => {
     fetchListings();
@@ -44,6 +48,11 @@ export default function FarmerDashboard() {
 
     if (!error && data) {
       setListings(data);
+      // Fetch images for each listing
+      for (const listing of data) {
+        const images = await getListingImages(listing.id);
+        setListingImagesMap((prev) => ({ ...prev, [listing.id]: images }));
+      }
     }
     setLoading(false);
   };
@@ -77,13 +86,30 @@ export default function FarmerDashboard() {
       description: formData.description,
     };
 
+    let listingId = editingListing?.id;
     if (editingListing) {
       await supabase
         .from('crop_listings')
         .update(listingData)
         .eq('id', editingListing.id);
     } else {
-      await supabase.from('crop_listings').insert([listingData]);
+      const { data } = await supabase.from('crop_listings').insert([listingData]).select().single();
+      listingId = data?.id;
+    }
+
+    // Upload images if provided
+    if (uploadedFiles.length > 0 && listingId) {
+      try {
+        const uploadedUrls: string[] = [];
+        for (const file of uploadedFiles) {
+          const url = await uploadListingImage(profile!.id, listingId, file);
+          uploadedUrls.push(url);
+        }
+        await addListingImages(listingId, uploadedUrls);
+      } catch (err) {
+        console.error('Failed to upload images', err);
+        alert('Some images failed to upload');
+      }
     }
 
     setFormData({
@@ -94,7 +120,9 @@ export default function FarmerDashboard() {
       location: '',
       contact_number: profile?.mobile_number || '',
       description: '',
+      quality_grade: 'A',
     });
+    setUploadedFiles([]);
     setShowAddForm(false);
     setEditingListing(null);
     fetchListings();
@@ -110,6 +138,7 @@ export default function FarmerDashboard() {
       location: listing.location,
       contact_number: listing.contact_number,
       description: listing.description || '',
+      quality_grade: (listing as any).quality_grade || 'A',
     });
     setShowAddForm(true);
   };
@@ -134,7 +163,7 @@ export default function FarmerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-20 md:pb-0">
       <header className="bg-green-600 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
@@ -273,6 +302,44 @@ export default function FarmerDashboard() {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Quality Grade
+                </label>
+                <select
+                  value={formData.quality_grade}
+                  onChange={(e) => setFormData({ ...formData, quality_grade: e.target.value as 'A' | 'B' | 'C' })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="A">Grade A (Premium)</option>
+                  <option value="B">Grade B (Standard)</option>
+                  <option value="C">Grade C (Economic)</option>
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload Images (Max 6)
+                </label>
+                <label className="block px-4 py-3 border-2 border-dashed border-green-500 rounded-lg cursor-pointer hover:bg-green-50 text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => setUploadedFiles(e.target.files ? Array.from(e.target.files).slice(0, 6) : [])}
+                    className="hidden"
+                  />
+                  <div className="text-sm text-gray-600">{uploadedFiles.length > 0 ? `${uploadedFiles.length} images selected` : 'Click to upload images'}</div>
+                </label>
+              </div>
+              {uploadedFiles.length > 0 && (
+                <div className="md:col-span-2 grid grid-cols-3 gap-2">
+                  {uploadedFiles.map((f, i) => (
+                    <div key={i} className="relative">
+                      <img src={URL.createObjectURL(f)} alt={f.name} className="w-full h-20 object-cover rounded" />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('description')}
                 </label>
                 <textarea
@@ -345,46 +412,63 @@ export default function FarmerDashboard() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {listings.map((listing) => (
-                <div key={listing.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-bold text-gray-800">{listing.crop_name}</h3>
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      listing.status === 'active' ? 'bg-green-100 text-green-800' :
-                      listing.status === 'sold' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {t(listing.status)}
-                    </span>
-                  </div>
-                  <div className="space-y-1 text-sm text-gray-600 mb-4">
-                    <p><span className="font-semibold">{t('quantity')}:</span> {listing.quantity} {listing.unit}</p>
-                    <p><span className="font-semibold">{t('expectedPrice')}:</span> ₹{listing.expected_price}/{listing.unit}</p>
-                    <p><span className="font-semibold">{t('location')}:</span> {listing.location}</p>
-                    <p><span className="font-semibold">{t('contactNumber')}:</span> {listing.contact_number}</p>
-                  </div>
-                  {listing.status === 'active' && (
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(listing)}
-                        className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                        {t('edit')}
-                      </button>
-                      <button
-                        onClick={() => handleMarkAsSold(listing.id)}
-                        className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm"
-                      >
-                        {t('markAsSold')}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(listing.id)}
-                        className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                <div key={listing.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition">
+                  {listingImagesMap[listing.id]?.length > 0 ? (
+                    <div className="relative h-40 bg-gray-100 overflow-hidden">
+                      <img
+                        src={listingImagesMap[listing.id][0].url}
+                        alt={listing.crop_name}
+                        className="w-full h-full object-cover"
+                      />
+                      {listingImagesMap[listing.id].length > 1 && (
+                        <div className="absolute top-2 right-2 bg-black text-white px-2 py-1 rounded text-xs">
+                          +{listingImagesMap[listing.id].length - 1}
+                        </div>
+                      )}
                     </div>
+                  ) : (
+                    <div className="h-40 bg-gray-200 flex items-center justify-center text-gray-400">No image</div>
                   )}
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-bold text-gray-800">{listing.crop_name}</h3>
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        listing.status === 'active' ? 'bg-green-100 text-green-800' :
+                        listing.status === 'sold' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {t(listing.status)}
+                      </span>
+                    </div>
+                    <div className="space-y-1 text-sm text-gray-600 mb-4">
+                      <p><span className="font-semibold">{t('quantity')}:</span> {listing.quantity} {listing.unit}</p>
+                      <p><span className="font-semibold">{t('expectedPrice')}:</span> ₹{listing.expected_price}/{listing.unit}</p>
+                      <p><span className="font-semibold">{t('location')}:</span> {listing.location}</p>
+                    </div>
+                    {listing.status === 'active' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(listing)}
+                          className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                          {t('edit')}
+                        </button>
+                        <button
+                          onClick={() => handleMarkAsSold(listing.id)}
+                          className="flex-1 bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition text-sm"
+                        >
+                          {t('markAsSold')}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(listing.id)}
+                          className="bg-red-600 text-white px-3 py-2 rounded-lg hover:bg-red-700 transition"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

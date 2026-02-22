@@ -77,8 +77,31 @@ export default function FarmerDashboard() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setSubmitError('');
+
+    // Validation before submission
+    if (!formData.crop_name.trim()) {
+      setSubmitError('Please enter crop name');
+      return;
+    }
+    if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
+      setSubmitError('Please enter valid quantity');
+      return;
+    }
+    if (!formData.expected_price || parseFloat(formData.expected_price) <= 0) {
+      setSubmitError('Please enter valid price');
+      return;
+    }
+    if (!formData.location.trim()) {
+      setSubmitError('Please enter location');
+      return;
+    }
+    if (!formData.contact_number.trim()) {
+      setSubmitError('Please enter contact number');
+      return;
+    }
+
+    setIsSubmitting(true);
 
     try {
       const listingData = {
@@ -100,15 +123,34 @@ export default function FarmerDashboard() {
           .update(listingData)
           .eq('id', editingListing.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw new Error(`Update failed: ${error.message}`);
+        }
       } else {
-        const { data, error } = await supabase.from('crop_listings').insert([listingData]).select().single();
-        if (error) throw error;
+        const { data, error } = await supabase
+          .from('crop_listings')
+          .insert([listingData])
+          .select()
+          .single();
+        
+        if (error) {
+          console.error('Insert error:', error);
+          // If error includes "column", it means quality_grade column doesn't exist
+          if (error.message.includes('column') || error.message.includes('quality_grade')) {
+            throw new Error('Database migration required. Please run the migration file and try again.');
+          }
+          throw new Error(`Insert failed: ${error.message}`);
+        }
         listingId = data?.id;
       }
 
+      if (!listingId) {
+        throw new Error('Failed to get listing ID after creation');
+      }
+
       // Upload images if provided
-      if (uploadedFiles.length > 0 && listingId) {
+      if (uploadedFiles.length > 0) {
         try {
           const uploadedUrls: string[] = [];
           for (const file of uploadedFiles) {
@@ -119,13 +161,12 @@ export default function FarmerDashboard() {
         } catch (imgErr) {
           console.error('Failed to upload images', imgErr);
           setSubmitError(`Listing created but image upload failed: ${imgErr instanceof Error ? imgErr.message : 'Unknown error'}`);
+          // Don't throw - listing was created successfully
         }
       }
 
       // Success
-      if (!submitError) {
-        alert(editingListing ? 'Listing updated successfully!' : 'Listing created successfully!');
-      }
+      alert(editingListing ? 'Listing updated successfully!' : 'Listing created successfully!');
 
       setFormData({
         crop_name: '',
@@ -140,12 +181,11 @@ export default function FarmerDashboard() {
       setUploadedFiles([]);
       setShowAddForm(false);
       setEditingListing(null);
-      fetchListings();
+      await fetchListings();
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Failed to create listing. Please check all fields and try again.';
       setSubmitError(errorMsg);
       console.error('Listing submission error:', err);
-      alert(`Error: ${errorMsg}`);
     } finally {
       setIsSubmitting(false);
     }

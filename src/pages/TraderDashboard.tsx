@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { fetchAllListings, getTraderBookmarks } from '../features/trader/api';
+import { supabase } from '../lib/supabase';
 import { savePost, unsavePost } from '../features/community/api';
 import { Search, Filter, Bookmark, Phone, MessageSquare, Users } from 'lucide-react';
 import FarmerProfile from '../components/FarmerProfile';
@@ -36,13 +36,20 @@ export default function TraderDashboard() {
   const loadListings = async () => {
     try {
       setLoading(true);
-      const data = await fetchAllListings(
-        filters.cropName || undefined,
-        filters.minPrice ? parseInt(filters.minPrice) : undefined,
-        filters.maxPrice ? parseInt(filters.maxPrice) : undefined,
-        filters.location || undefined
-      );
-      setListings(data);
+      const { data, error } = await supabase
+        .from('crop_listings')
+        .select(`
+          *,
+          listing_images(*),
+          user_profiles!farmer_id(full_name, mobile_number, state, district)
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (!error && data) {
+        setListings(data);
+      }
     } catch (err) {
       console.error('Failed to load listings', err);
     }
@@ -52,9 +59,15 @@ export default function TraderDashboard() {
   const loadBookmarks = async () => {
     try {
       if (!profile?.id) return;
-      const data = await getTraderBookmarks(profile.id);
-      const ids: Set<string> = new Set((data || []).map((b: any) => b.listing_id as string));
-      setBookmarked(ids);
+      const { data, error } = await supabase
+        .from('saves')
+        .select('listing_id')
+        .eq('user_id', profile.id);
+
+      if (!error && data) {
+        const ids: Set<string> = new Set(data.map((b: any) => b.listing_id as string));
+        setBookmarked(ids);
+      }
     } catch (err) {
       console.error('Failed to load bookmarks', err);
     }

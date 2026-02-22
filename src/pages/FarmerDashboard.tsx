@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { Plus, Edit2, Trash2, LogOut, DollarSign, MessageSquare } from 'lucide-react';
-import { uploadListingImage, addListingImages, getListingImages } from '../features/listings/api';
+import { uploadListingImage, addListingImages } from '../features/listings/api';
 import type { Database } from '../lib/database.types';
 
 type CropListing = Database['public']['Tables']['crop_listings']['Row'];
@@ -42,17 +42,18 @@ export default function FarmerDashboard() {
   const fetchListings = async () => {
     const { data, error } = await supabase
       .from('crop_listings')
-      .select('*')
+      .select('*, listing_images(*)')
       .eq('farmer_id', profile?.id)
       .order('created_at', { ascending: false });
 
     if (!error && data) {
       setListings(data);
-      // Fetch images for each listing
-      for (const listing of data) {
-        const images = await getListingImages(listing.id);
-        setListingImagesMap((prev) => ({ ...prev, [listing.id]: images }));
-      }
+      // Build map of listing_id -> images
+      const imageMap: Record<string, any[]> = {};
+      data.forEach((listing: any) => {
+        imageMap[listing.id] = listing.listing_images || [];
+      });
+      setListingImagesMap(imageMap);
     }
     setLoading(false);
   };

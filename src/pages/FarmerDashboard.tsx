@@ -226,12 +226,12 @@ export default function FarmerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 md:pb-20">
-      <header className="bg-green-600 text-white shadow-lg">
+    <div className="km-page">
+      <header className="km-topbar">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">{t('appName')}</h1>
-            <p className="text-green-100">{profile?.full_name} - {t('farmer')}</p>
+            <p className="km-topbar-muted">{profile?.full_name} - {t('farmer')}</p>
           </div>
           <div className="flex gap-3 items-center">
             <select
@@ -254,7 +254,7 @@ export default function FarmerDashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="km-container">
         <div className="flex flex-wrap gap-3 mb-6">
           <button
             onClick={() => {
@@ -262,7 +262,7 @@ export default function FarmerDashboard() {
               setShowOffers(false);
               setEditingListing(null);
             }}
-            className="w-full sm:w-auto flex items-center gap-2 bg-green-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-green-700 transition text-base sm:text-lg font-semibold"
+            className="km-btn km-btn-green w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg"
           >
             <Plus className="w-5 h-5" />
             {t('addListing')}
@@ -272,14 +272,14 @@ export default function FarmerDashboard() {
               setShowOffers(!showOffers);
               setShowAddForm(false);
             }}
-            className="w-full sm:w-auto flex items-center gap-2 bg-blue-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-blue-700 transition text-base sm:text-lg font-semibold"
+            className="km-btn km-btn-blue w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg"
           >
             <MessageSquare className="w-5 h-5" />
             {t('receivedOffers')} ({offers.length})
           </button>
           <a
             href="/mandi-prices"
-            className="w-full sm:w-auto flex items-center gap-2 bg-orange-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-orange-700 transition text-base sm:text-lg font-semibold"
+            className="km-btn km-btn-orange w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg"
           >
             <DollarSign className="w-5 h-5" />
             {t('mandiPrices')}
@@ -287,7 +287,7 @@ export default function FarmerDashboard() {
         </div>
 
         {showAddForm && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div className="km-card mb-6">
             <h2 className="text-xl font-bold mb-4">
               {editingListing ? t('edit') : t('addListing')}
             </h2>
@@ -447,7 +447,7 @@ export default function FarmerDashboard() {
         )}
 
         {showOffers && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div className="km-card mb-6">
             <h2 className="text-xl font-bold mb-4">{t('receivedOffers')}</h2>
             {offers.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No offers received yet</p>
@@ -480,7 +480,7 @@ export default function FarmerDashboard() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="km-card">
           <h2 className="text-xl font-bold mb-4">{t('myListings')}</h2>
           {listings.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No listings yet. Add your first listing!</p>
@@ -553,3 +553,4 @@ export default function FarmerDashboard() {
     </div>
   );
 }
+

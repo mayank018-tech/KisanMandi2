@@ -110,33 +110,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const normalized = normalizeMobile(mobileNumber);
 
-      // Try exact match first
-      let profileData: any = null;
-      let profileError: any = null;
+      let mappedEmail: string | null = null;
+      const { data: rpcEmail, error: mapError } = await supabase.rpc('get_login_email_by_mobile', {
+        p_mobile: normalized,
+      });
 
-      ({ data: profileData, error: profileError } = await supabase
-        .from('user_profiles')
-        .select('email')
-        .eq('mobile_number', normalized)
-        .maybeSingle());
-
-      if (profileError) throw profileError;
-
-      // Try like match (contains) if exact not found
-      if (!profileData) {
-        ({ data: profileData, error: profileError } = await supabase
+      if (!mapError) {
+        mappedEmail = rpcEmail as string | null;
+      } else {
+        // Fallback for environments where RPC migration is not applied yet.
+        const { data: profileData, error: profileError } = await supabase
           .from('user_profiles')
           .select('email')
-          .like('mobile_number', `%${normalized}`)
-          .maybeSingle());
+          .or(`mobile_number.eq.${normalized},mobile_number.like.%${normalized}`)
+          .limit(1)
+          .maybeSingle();
 
         if (profileError) throw profileError;
+        mappedEmail = profileData?.email ?? null;
       }
 
-      if (!profileData || !profileData.email) throw new Error('Mobile number not found');
+      if (!mappedEmail) throw new Error('Mobile number not found');
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: profileData.email,
+        email: mappedEmail,
         password,
       });
 

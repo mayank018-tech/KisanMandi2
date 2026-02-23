@@ -1,4 +1,3 @@
-import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { MessageSquare, Users, Home, LogOut } from 'lucide-react';
 
@@ -22,11 +21,11 @@ export default function Navbar({
   ];
 
   return (
-    <header className="bg-green-600 text-white shadow-lg">
+    <header className="km-topbar">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center flex-wrap gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">{title}</h1>
-          {userName && <p className="text-green-100 text-sm">{userName}</p>}
+          {userName && <p className="km-topbar-muted text-sm">{userName}</p>}
         </div>
 
         {showNav && (
@@ -42,7 +41,7 @@ export default function Navbar({
                     window.history.pushState({}, '', item.href);
                     window.location.reload();
                   }}
-                  className="flex items-center gap-2 px-3 py-2 bg-green-700 rounded hover:bg-green-800 transition text-sm"
+                  className="flex items-center gap-2 rounded-lg bg-white/15 px-3 py-2 text-sm transition hover:bg-white/25"
                 >
                   <Icon className="w-4 h-4" />
                   {item.label}
@@ -56,7 +55,7 @@ export default function Navbar({
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'gu')}
-            className="px-3 py-2 bg-white text-gray-800 rounded text-sm"
+            className="rounded-lg border border-white/40 bg-white/15 px-3 py-2 text-sm text-white"
           >
             <option value="en">English</option>
             <option value="hi">हिंदी</option>
@@ -65,7 +64,7 @@ export default function Navbar({
           {onLogout && (
             <button
               onClick={onLogout}
-              className="flex items-center gap-2 bg-green-700 px-4 py-2 rounded hover:bg-green-800 transition text-sm"
+              className="km-btn km-btn-orange text-sm"
             >
               <LogOut className="w-4 h-4" />
               Logout

@@ -28,10 +28,10 @@ export default function ForgetPassword() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4 py-6">
-      <div className="w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl p-6 sm:p-8">
+    <div className="km-page flex items-center justify-center px-4 py-6">
+      <div className="km-card mx-auto w-full max-w-md">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold text-green-700">{t('appName')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-[var(--km-primary)]">{t('appName')}</h1>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'gu')}
@@ -44,7 +44,7 @@ export default function ForgetPassword() {
         </div>
 
         <div className="flex items-center gap-3 mb-6">
-          <KeyRound className="w-8 h-8 text-green-600" />
+          <KeyRound className="h-8 w-8 text-[var(--km-primary)]" />
           <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">{t('resetPassword')}</h2>
         </div>
 
@@ -78,7 +78,7 @@ export default function ForgetPassword() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-3 px-4 rounded-lg text-lg font-semibold hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="km-btn km-btn-green w-full py-3 text-lg disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? '...' : t('resetPassword')}
           </button>
@@ -92,7 +92,7 @@ export default function ForgetPassword() {
               window.history.pushState({}, '', '/login');
               window.location.reload();
             }}
-            className="text-green-600 hover:text-green-700 font-semibold"
+            className="font-semibold text-[var(--km-primary)] hover:underline"
           >
             {t('login')}
           </a>

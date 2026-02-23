@@ -95,19 +95,19 @@ export default function MandiPrices() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-orange-600 text-white shadow-lg">
+    <div className="km-page">
+      <header className="km-topbar">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button
               onClick={goBack}
-              className="bg-orange-700 p-2 rounded-lg hover:bg-orange-800 transition"
+              className="km-btn km-btn-orange p-2"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <h1 className="text-2xl font-bold">{t('mandiPrices')}</h1>
-              <p className="text-orange-100">Daily Market Prices</p>
+              <p className="km-topbar-muted">Daily Market Prices</p>
             </div>
           </div>
           <select
@@ -122,8 +122,8 @@ export default function MandiPrices() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+      <div className="km-container">
+        <div className="km-card mb-6">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
             {t('filter')} Prices
@@ -198,7 +198,7 @@ export default function MandiPrices() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="km-card overflow-hidden">
           <div className="p-6">
             <h2 className="text-xl font-bold mb-4">
               Market Prices ({filteredPrices.length})
@@ -273,3 +273,4 @@ export default function MandiPrices() {
     </div>
   );
 }
+

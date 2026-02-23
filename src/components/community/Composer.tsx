@@ -1,69 +1,79 @@
-import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { uploadPostImage, createPost } from '../../features/community/api';
+import { useState } from 'react';
+import { ImagePlus } from 'lucide-react';
+import { useAppUiStore } from '../../stores/appUiStore';
 
-export default function Composer({ onPost }: { onPost?: (p: any) => void }) {
-  const { user, profile } = useAuth();
-  const [text, setText] = useState('');
+type ComposerProps = {
+  isSubmitting?: boolean;
+  onSubmit: (payload: { content: string; files: File[] }) => Promise<unknown>;
+};
+
+export default function Composer({ onSubmit, isSubmitting = false }: ComposerProps) {
+  const draft = useAppUiStore((state) => state.communityDraft);
+  const setDraft = useAppUiStore((state) => state.setCommunityDraft);
   const [files, setFiles] = useState<File[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    setFiles(Array.from(e.target.files).slice(0, 6));
+    setFiles(Array.from(e.target.files).slice(0, 4));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile) return alert('Please login to post');
-    if (!text.trim() && files.length === 0) return;
+    if (isSubmitting) return;
 
-    setLoading(true);
+    const content = draft.trim();
+    if (!content && files.length === 0) return;
+
     try {
-      const uploadedUrls: string[] = [];
-      for (const f of files) {
-        const publicUrl = await uploadPostImage(profile.id, f);
-        uploadedUrls.push(publicUrl);
-      }
-
-      const post = await createPost(profile.id, text.trim(), uploadedUrls);
-      onPost && onPost(post);
-      setText('');
+      await onSubmit({ content, files });
+      setDraft('');
       setFiles([]);
     } catch (err) {
-      console.error(err);
-      alert('Failed to create post');
+      console.error('Failed to create post', err);
     }
-    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-4">
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-4 shadow-[var(--km-shadow-sm)]"
+    >
       <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        className="w-full p-3 border border-gray-200 rounded mb-3"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        className="mb-3 w-full rounded-lg border border-[var(--km-border)] p-3 text-sm outline-none transition focus:border-[var(--km-primary)]"
         rows={3}
-        placeholder="Share crop news, price updates or a quick farming tip..."
+        maxLength={2000}
+        placeholder="Share crop updates, mandi insights, or a quick farming tip..."
       />
+
       {files.length > 0 && (
-        <div className="mb-3 grid grid-cols-3 gap-2">
-          {files.map((f, i) => (
-            <img key={i} src={URL.createObjectURL(f)} alt={f.name} className="w-full h-24 object-cover rounded" />
+        <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {files.map((file, idx) => (
+            <img
+              key={`${file.name}-${idx}`}
+              src={URL.createObjectURL(file)}
+              alt={file.name}
+              className="h-24 w-full rounded-lg object-cover"
+            />
           ))}
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <label className="px-3 py-2 bg-green-50 rounded cursor-pointer text-sm">
-            <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
-            Upload ({files.length})
-          </label>
-          <button type="submit" disabled={loading} className="bg-green-600 text-white px-4 py-2 rounded">
-            {loading ? 'Posting...' : 'Post'}
-          </button>
-        </div>
-        <div className="text-xs text-gray-500">Public</div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--km-border)] px-3 text-sm text-[var(--km-muted)] hover:bg-slate-50">
+          <ImagePlus className="h-4 w-4" />
+          Add images ({files.length})
+          <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
+        </label>
+
+        <button
+          type="submit"
+          disabled={isSubmitting || (!draft.trim() && files.length === 0)}
+          className="h-10 rounded-lg bg-[var(--km-primary)] px-4 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isSubmitting ? 'Posting...' : 'Post'}
+        </button>
       </div>
     </form>
   );

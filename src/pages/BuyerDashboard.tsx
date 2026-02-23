@@ -142,12 +142,12 @@ export default function BuyerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 md:pb-20">
-      <header className="bg-blue-600 text-white shadow-lg">
+    <div className="km-page">
+      <header className="km-topbar">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold">{t('appName')}</h1>
-            <p className="text-blue-100">{profile?.full_name} - {t('buyer')}</p>
+            <p className="km-topbar-muted">{profile?.full_name} - {t('buyer')}</p>
           </div>
           <div className="flex gap-3 items-center">
             <select
@@ -170,18 +170,18 @@ export default function BuyerDashboard() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="km-container">
         <div className="flex flex-wrap gap-3 mb-6">
           <button
             onClick={() => setShowMyOffers(!showMyOffers)}
-            className="w-full sm:w-auto flex items-center gap-2 bg-blue-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-blue-700 transition text-base sm:text-lg font-semibold"
+            className="km-btn km-btn-blue w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg"
           >
             <MessageSquare className="w-5 h-5" />
             {t('myOffers')} ({myOffers.length})
           </button>
           <a
             href="/mandi-prices"
-            className="w-full sm:w-auto flex items-center gap-2 bg-orange-600 text-white px-4 py-2 sm:px-6 sm:py-3 rounded-lg hover:bg-orange-700 transition text-base sm:text-lg font-semibold"
+            className="km-btn km-btn-orange w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg"
           >
             <DollarSign className="w-5 h-5" />
             {t('mandiPrices')}
@@ -189,7 +189,7 @@ export default function BuyerDashboard() {
         </div>
 
         {showMyOffers && (
-          <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div className="km-card mb-6">
             <h2 className="text-xl font-bold mb-4">{t('myOffers')}</h2>
             {myOffers.length === 0 ? (
               <p className="text-gray-500 text-center py-8">No offers sent yet</p>
@@ -222,7 +222,7 @@ export default function BuyerDashboard() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div className="km-card mb-6">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Filter className="w-5 h-5" />
             {t('filter')} & {t('search')}
@@ -279,7 +279,7 @@ export default function BuyerDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="km-card">
           <h2 className="text-xl font-bold mb-4">{t('searchCrops')} ({filteredListings.length})</h2>
           {filteredListings.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No crops found matching your criteria</p>
@@ -379,3 +379,4 @@ export default function BuyerDashboard() {
     </div>
   );
 }
+

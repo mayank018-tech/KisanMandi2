@@ -46,7 +46,7 @@ export default function MobileBottomNav({
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40 shadow-lg">
+      <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--km-border)] bg-[var(--km-surface)] shadow-lg">
         <nav className="flex items-center justify-around h-16 md:h-20 px-2 md:px-6">
           {visibleItems.map((item) => {
             const Icon = item.icon;
@@ -58,8 +58,8 @@ export default function MobileBottomNav({
                 onClick={() => onNavigate(item.id)}
                 className={`flex flex-col items-center justify-center gap-1 py-2 px-2 md:px-4 transition rounded-lg ${
                   active
-                    ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'
+                    ? 'bg-[var(--km-primary-soft)] text-[var(--km-primary)]'
+                    : 'text-[var(--km-muted)] hover:bg-slate-100 hover:text-[var(--km-text)]'
                 }`}
                 title={item.label}
               >
@@ -72,7 +72,7 @@ export default function MobileBottomNav({
           {/* Logout button */}
           <button
             onClick={onLogout}
-            className="flex flex-col items-center justify-center gap-1 py-2 px-2 md:px-4 text-gray-600 hover:text-red-600 hover:bg-red-50 transition rounded-lg"
+            className="flex flex-col items-center justify-center gap-1 rounded-lg px-2 py-2 text-[var(--km-muted)] transition hover:bg-orange-50 hover:text-[var(--km-accent-orange)] md:px-4"
             title="Logout"
           >
             <LogOut className="w-5 h-5 md:w-6 md:h-6" />

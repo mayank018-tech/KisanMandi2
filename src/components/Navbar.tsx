@@ -1,4 +1,4 @@
-import React from 'react';
+// React import not required with new JSX transform
 import { useLanguage } from '../contexts/LanguageContext';
 import { MessageSquare, Users, Home, LogOut } from 'lucide-react';
 

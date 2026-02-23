@@ -485,28 +485,29 @@ export default function FarmerDashboard() {
           {listings.length === 0 ? (
             <p className="text-gray-500 text-center py-8">No listings yet. Add your first listing!</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {listings.map((listing) => (
-                <div key={listing.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition">
+                <div key={listing.id} className="group border border-gray-200 rounded-xl overflow-hidden hover:shadow-2xl transition-transform transform hover:-translate-y-1">
                   {listingImagesMap[listing.id]?.length > 0 ? (
-                    <div className="relative h-40 bg-gray-100 overflow-hidden">
+                    <div className="relative h-44 bg-gray-100 overflow-hidden">
                       <img
                         src={listingImagesMap[listing.id][0].url}
                         alt={listing.crop_name}
                         className="w-full h-full object-cover"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-90 pointer-events-none" />
                       {listingImagesMap[listing.id].length > 1 && (
-                        <div className="absolute top-2 right-2 bg-black text-white px-2 py-1 rounded text-xs">
+                        <div className="absolute top-3 right-3 bg-black/70 text-white px-2 py-1 rounded text-xs">
                           +{listingImagesMap[listing.id].length - 1}
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="h-40 bg-gray-200 flex items-center justify-center text-gray-400">No image</div>
+                    <div className="h-44 bg-gray-200 flex items-center justify-center text-gray-400">No image</div>
                   )}
-                  <div className="p-4">
+                  <div className="p-4 bg-white">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-bold text-gray-800">{listing.crop_name}</h3>
+                      <h3 className="text-lg font-bold text-gray-900">{listing.crop_name}</h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         listing.status === 'active' ? 'bg-green-100 text-green-800' :
                         listing.status === 'sold' ? 'bg-blue-100 text-blue-800' :

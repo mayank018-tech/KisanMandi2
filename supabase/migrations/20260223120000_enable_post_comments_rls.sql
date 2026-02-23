@@ -30,3 +30,6 @@ BEGIN
       USING (user_id = auth.uid());
   END IF;
 END $$;
+
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key

@@ -83,7 +83,7 @@ export async function addComment(postId: string, userId: string, content: string
   const { data, error } = await supabase
     .from('post_comments')
     .insert([{ post_id: postId, user_id: userId, content }])
-    .select('*, user_profiles: user_id(user_profiles!inner(*))')
+    .select('*, user_profiles:user_id(user_profiles!inner(*))')
     .single();
 
   return { data, error };
@@ -92,7 +92,7 @@ export async function addComment(postId: string, userId: string, content: string
 export async function fetchComments(postId: string, limit = 50) {
   const { data, error } = await supabase
     .from('post_comments')
-    .select('*, user_profiles: user_id(user_profiles!inner(*))')
+    .select('*, user_profiles:user_id(user_profiles!inner(*))')
     .eq('post_id', postId)
     .order('created_at', { ascending: true })
     .limit(limit);

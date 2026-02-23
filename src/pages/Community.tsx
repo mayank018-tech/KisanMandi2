@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Composer from '../components/community/Composer';
@@ -38,18 +38,18 @@ export default function Community() {
     <div className="min-h-screen bg-gray-50 pb-16 md:pb-20">
       <header className="bg-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">{t('community') || 'Community'}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">{t('community') || 'Community'}</h1>
         </div>
       </header>
 
-      <div className="max-w-3xl mx-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto px-4 py-6">
         {user && (
           <div className="mb-6">
             <Composer onPost={(p) => setPosts((s) => [p, ...s])} />
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-6 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
           {loading ? (
             <div className="p-8 bg-white rounded-lg shadow text-center text-gray-500">Loading...</div>
           ) : posts.length === 0 ? (

@@ -1,14 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import { MessageSquare, Share2, ThumbsUp } from 'lucide-react';
+import { MessageSquare, Share2, ThumbsUp, Trash2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { addComment, fetchComments, likePost, unlikePost } from '../../features/community/api';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { addComment, deletePost, fetchComments, likePost, unlikePost } from '../../features/community/api';
+import SafeImage from '../common/SafeImage';
+import { navigateTo } from '../../lib/navigation';
 
 type PostCardProps = {
   post: any;
+  onDeleted?: (postId: string) => void;
 };
 
 function formatTimeAgo(value?: string) {
-  if (!value) return 'just now';
+  if (!value) return 'now';
   const ts = new Date(value).getTime();
   const diffSec = Math.max(1, Math.floor((Date.now() - ts) / 1000));
 
@@ -24,8 +28,9 @@ function roleLabel(role?: string | null) {
   return role[0].toUpperCase() + role.slice(1).toLowerCase();
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, onDeleted }: PostCardProps) {
   const { profile } = useAuth();
+  const { t } = useLanguage();
 
   const [liked, setLiked] = useState<boolean>(() => {
     if (!Array.isArray(post.post_likes) || !profile?.id) return false;
@@ -49,8 +54,8 @@ export default function PostCard({ post }: PostCardProps) {
   const [commentLoading, setCommentLoading] = useState(false);
 
   const postedImages = useMemo(() => post.post_images || [], [post.post_images]);
-
   const location = [post.user_profiles?.district, post.user_profiles?.state].filter(Boolean).join(', ');
+  const isOwner = profile?.id === post.author_id;
 
   const handleLike = async () => {
     if (!profile) return;
@@ -134,20 +139,38 @@ export default function PostCard({ post }: PostCardProps) {
     }
   };
 
+  const handleDelete = async () => {
+    if (!window.confirm(t('confirmDeletePost', 'Delete this post?'))) return;
+    await deletePost(post.id);
+    onDeleted?.(post.id);
+  };
+
   return (
     <article className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-4 shadow-[var(--km-shadow-sm)] transition hover:shadow-[var(--km-shadow-md)]">
       <header className="mb-3 flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3">
-          <div className="h-11 w-11 rounded-full bg-slate-200" />
+        <button className="flex items-start gap-3 text-left" onClick={() => navigateTo(`profile?user=${post.author_id}`)}>
+          <div className="h-11 w-11 overflow-hidden rounded-full bg-slate-200">
+            <SafeImage className="h-full w-full object-cover" src={post.user_profiles?.avatar_url} />
+          </div>
           <div>
-            <div className="text-sm font-semibold text-[var(--km-text)]">{post.user_profiles?.full_name || 'KisanMandi User'}</div>
+            <div className="text-sm font-semibold text-[var(--km-text)]">{post.user_profiles?.full_name || t('appName', 'KisanMandi')}</div>
             <div className="text-xs text-[var(--km-muted)]">
               {roleLabel(post.user_profiles?.role)}
               {location ? ` | ${location}` : ''}
             </div>
             <div className="text-xs text-[var(--km-muted)]">{formatTimeAgo(post.created_at)}</div>
           </div>
-        </div>
+        </button>
+
+        {isOwner && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="rounded-lg p-2 text-[var(--km-muted)] transition hover:bg-red-50 hover:text-red-600"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </header>
 
       <div className="mb-4 whitespace-pre-wrap text-sm leading-6 text-[var(--km-text)]">{post.content}</div>
@@ -155,7 +178,7 @@ export default function PostCard({ post }: PostCardProps) {
       {postedImages.length > 0 && (
         <div className={`mb-4 grid gap-2 ${postedImages.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
           {postedImages.map((img: any, idx: number) => (
-            <img
+            <SafeImage
               key={`${post.id}-image-${idx}`}
               src={img.url}
               alt="Post"
@@ -182,7 +205,7 @@ export default function PostCard({ post }: PostCardProps) {
           }`}
         >
           <ThumbsUp className="h-4 w-4" />
-          Like
+          {t('like', 'Like')}
         </button>
 
         <button
@@ -191,7 +214,7 @@ export default function PostCard({ post }: PostCardProps) {
           className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg text-sm text-[var(--km-muted)] transition hover:bg-slate-100"
         >
           <MessageSquare className="h-4 w-4" />
-          Comment
+          {t('comment', 'Comment')}
         </button>
 
         <button
@@ -199,7 +222,7 @@ export default function PostCard({ post }: PostCardProps) {
           className="flex h-10 flex-1 items-center justify-center gap-2 rounded-lg text-sm text-[var(--km-muted)] transition hover:bg-slate-100"
         >
           <Share2 className="h-4 w-4" />
-          Share
+          {t('share', 'Share')}
         </button>
       </div>
 
@@ -207,12 +230,12 @@ export default function PostCard({ post }: PostCardProps) {
         <section className="mt-4 border-t border-[var(--km-border)] pt-4">
           <div className="mb-3 space-y-2">
             {comments.length === 0 ? (
-              <p className="text-sm text-[var(--km-muted)]">No comments yet.</p>
+              <p className="text-sm text-[var(--km-muted)]">{t('noCommentsYet', 'No comments yet.')}</p>
             ) : (
               comments.map((comment) => (
                 <div key={comment.id} className="rounded-lg bg-slate-50 p-3">
                   <div className="text-xs font-semibold text-[var(--km-text)]">
-                    {comment.user_profiles?.full_name || 'User'}
+                    {comment.user_profiles?.full_name || t('profile', 'User')}
                   </div>
                   <div className="mt-1 text-sm text-[var(--km-text)]">{comment.content}</div>
                   <div className="mt-1 text-xs text-[var(--km-muted)]">{formatTimeAgo(comment.created_at)}</div>
@@ -226,7 +249,7 @@ export default function PostCard({ post }: PostCardProps) {
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               className="h-10 flex-1 rounded-lg border border-[var(--km-border)] px-3 text-sm outline-none transition focus:border-[var(--km-primary)]"
-              placeholder="Write a comment..."
+              placeholder={t('writeComment', 'Write a comment...')}
               maxLength={1000}
             />
             <button
@@ -234,7 +257,7 @@ export default function PostCard({ post }: PostCardProps) {
               disabled={commentLoading || !commentText.trim()}
               className="h-10 rounded-lg bg-[var(--km-primary)] px-4 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {commentLoading ? 'Sending...' : 'Send'}
+              {commentLoading ? 'Sending...' : t('send', 'Send')}
             </button>
           </form>
         </section>

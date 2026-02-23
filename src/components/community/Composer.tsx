@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ImagePlus } from 'lucide-react';
 import { useAppUiStore } from '../../stores/appUiStore';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 type ComposerProps = {
   isSubmitting?: boolean;
@@ -8,6 +9,7 @@ type ComposerProps = {
 };
 
 export default function Composer({ onSubmit, isSubmitting = false }: ComposerProps) {
+  const { t } = useLanguage();
   const draft = useAppUiStore((state) => state.communityDraft);
   const setDraft = useAppUiStore((state) => state.setCommunityDraft);
   const [files, setFiles] = useState<File[]>([]);
@@ -44,7 +46,7 @@ export default function Composer({ onSubmit, isSubmitting = false }: ComposerPro
         className="mb-3 w-full rounded-lg border border-[var(--km-border)] p-3 text-sm outline-none transition focus:border-[var(--km-primary)]"
         rows={3}
         maxLength={2000}
-        placeholder="Share crop updates, mandi insights, or a quick farming tip..."
+        placeholder={t('postsCommentsUpdates', 'Posts, comments and crop updates')}
       />
 
       {files.length > 0 && (
@@ -63,7 +65,7 @@ export default function Composer({ onSubmit, isSubmitting = false }: ComposerPro
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg border border-[var(--km-border)] px-3 text-sm text-[var(--km-muted)] hover:bg-slate-50">
           <ImagePlus className="h-4 w-4" />
-          Add images ({files.length})
+          {t('addImages', 'Add images')} ({files.length})
           <input type="file" accept="image/*" multiple onChange={handleFiles} className="hidden" />
         </label>
 
@@ -72,7 +74,7 @@ export default function Composer({ onSubmit, isSubmitting = false }: ComposerPro
           disabled={isSubmitting || (!draft.trim() && files.length === 0)}
           className="h-10 rounded-lg bg-[var(--km-primary)] px-4 text-sm font-semibold text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSubmitting ? 'Posting...' : 'Post'}
+          {isSubmitting ? t('posting', 'Posting...') : t('post', 'Post')}
         </button>
       </div>
     </form>

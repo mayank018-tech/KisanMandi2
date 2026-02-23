@@ -205,6 +205,34 @@ export function subscribeToPostsRealtime(callback: (payload: any) => void) {
     .subscribe();
 }
 
+export async function deletePost(postId: string) {
+  const { error } = await supabase.from('posts').delete().eq('id', postId);
+  if (error) throw error;
+}
+
+export async function updatePost(postId: string, content: string) {
+  const { data, error } = await supabase
+    .from('posts')
+    .update({ content })
+    .eq('id', postId)
+    .select(
+      `
+        id,
+        author_id,
+        content,
+        created_at,
+        like_count,
+        comment_count,
+        post_images(url, ordering),
+        post_likes(user_id),
+        user_profiles!posts_author_id_fkey(id, full_name, role, state, district, village)
+      `
+    )
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export function subscribeToLikesRealtime(callback: (payload: any) => void) {
   return supabase
     .channel('likes')

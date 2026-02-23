@@ -5,11 +5,12 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { savePost, unsavePost } from '../features/community/api';
 import FarmerProfile from '../components/FarmerProfile';
+import SafeImage from '../components/common/SafeImage';
 
-function getStatusLabel(status?: string) {
-  if (status === 'sold') return 'Sold';
-  if (status === 'expired') return 'Negotiating';
-  return 'Available';
+function getStatusLabel(status: string | undefined, t: (key: string, fallback?: string) => string) {
+  if (status === 'sold') return t('sold', 'Sold');
+  if (status === 'expired') return t('negotiating', 'Negotiating');
+  return t('available', 'Available');
 }
 
 function getStatusClass(status?: string) {
@@ -146,20 +147,8 @@ export default function TraderDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--km-bg)] pb-16 md:pb-20">
-      <header className="sticky top-0 z-40 border-b border-[var(--km-border)] bg-[var(--km-surface)]">
-        <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between px-4 py-4 md:px-6">
-          <div>
-            <h1 className="text-xl font-semibold text-[var(--km-text)]">{t('appName')} Listings</h1>
-            <p className="text-sm text-[var(--km-muted)]">Clean marketplace feed for crop trading</p>
-          </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-[var(--km-muted)]">
-            {filteredListings.length} active
-          </span>
-        </div>
-      </header>
-
-      <div className="mx-auto w-full max-w-[1320px] px-4 py-6 md:px-6">
+    <div className="km-page">
+      <div className="mx-auto w-full max-w-7xl px-4 py-6">
         <section className="mb-5 rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-4 shadow-[var(--km-shadow-sm)]">
           <div className="flex flex-wrap gap-3">
             <div className="relative min-w-[240px] flex-1">
@@ -168,7 +157,7 @@ export default function TraderDashboard() {
                 type="text"
                 value={filters.cropName}
                 onChange={(e) => setFilters({ ...filters, cropName: e.target.value })}
-                placeholder="Search crop"
+                placeholder={t('searchCrop', 'Search crop')}
                 className="h-10 w-full rounded-lg border border-[var(--km-border)] pl-9 pr-3 text-sm outline-none focus:border-[var(--km-primary)]"
               />
             </div>
@@ -178,7 +167,7 @@ export default function TraderDashboard() {
               className="inline-flex h-10 items-center gap-2 rounded-lg border border-[var(--km-border)] px-3 text-sm text-[var(--km-text)] hover:bg-slate-50"
             >
               <Filter className="h-4 w-4" />
-              Filters
+              {t('filters', 'Filters')}
             </button>
           </div>
 
@@ -188,21 +177,21 @@ export default function TraderDashboard() {
                 type="number"
                 value={filters.minPrice}
                 onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
-                placeholder="Min price"
+                placeholder={t('minPrice', 'Min Price')}
                 className="h-10 rounded-lg border border-[var(--km-border)] px-3 text-sm outline-none focus:border-[var(--km-primary)]"
               />
               <input
                 type="number"
                 value={filters.maxPrice}
                 onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
-                placeholder="Max price"
+                placeholder={t('maxPrice', 'Max Price')}
                 className="h-10 rounded-lg border border-[var(--km-border)] px-3 text-sm outline-none focus:border-[var(--km-primary)]"
               />
               <input
                 type="text"
                 value={filters.location}
                 onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-                placeholder="Location"
+                placeholder={t('location', 'Location')}
                 className="h-10 rounded-lg border border-[var(--km-border)] px-3 text-sm outline-none focus:border-[var(--km-primary)]"
               />
             </div>
@@ -211,11 +200,11 @@ export default function TraderDashboard() {
 
         {loading ? (
           <div className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-8 text-center text-sm text-[var(--km-muted)]">
-            Loading listings...
+            {t('loadingListings', 'Loading listings...')}
           </div>
         ) : filteredListings.length === 0 ? (
           <div className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-8 text-center text-sm text-[var(--km-muted)]">
-            No listings found for current filters.
+            {t('noListingsForFilters', 'No listings found for current filters.')}
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -231,9 +220,9 @@ export default function TraderDashboard() {
                 >
                   <div className="relative h-48 bg-slate-100">
                     {currentImage ? (
-                      <img src={currentImage.url} alt={listing.crop_name} loading="lazy" className="h-full w-full object-cover" />
+                      <SafeImage src={currentImage.url} alt={listing.crop_name} className="h-full w-full object-cover" />
                     ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-[var(--km-muted)]">No image</div>
+                      <div className="flex h-full items-center justify-center text-sm text-[var(--km-muted)]">{t('noImage', 'No image')}</div>
                     )}
 
                     {images.length > 1 && (
@@ -270,14 +259,14 @@ export default function TraderDashboard() {
                     <div className="mb-2 flex items-start justify-between gap-2">
                       <h3 className="text-base font-semibold text-[var(--km-text)]">{listing.crop_name}</h3>
                       <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${getStatusClass(listing.status)}`}>
-                        {getStatusLabel(listing.status)}
+                        {getStatusLabel(listing.status, t)}
                       </span>
                     </div>
 
                     <div className="mb-3 flex items-center justify-between">
                       <p className="text-lg font-bold text-[var(--km-text)]">Rs {listing.expected_price}/{listing.unit}</p>
                       <span className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-semibold text-[var(--km-muted)]">
-                        Grade {(listing as any).quality_grade || 'N/A'}
+                        {t('grade', 'Grade')} {(listing as any).quality_grade || 'N/A'}
                       </span>
                     </div>
 
@@ -291,17 +280,17 @@ export default function TraderDashboard() {
                       onClick={() =>
                         setSelectedFarmer({
                           id: listing.farmer_id,
-                          name: listing.user_profiles?.full_name || 'Unknown Farmer',
+                          name: listing.user_profiles?.full_name || t('unknownFarmer', 'Unknown Farmer'),
                           phone: listing.contact_number,
                           location: listing.location,
                         })
                       }
                       className="mb-3 text-sm font-medium text-[var(--km-primary)] hover:underline"
                     >
-                      {listing.user_profiles?.full_name || 'Unknown Farmer'}
+                      {listing.user_profiles?.full_name || t('unknownFarmer', 'Unknown Farmer')}
                     </button>
 
-                    <div className="mb-4 text-sm text-[var(--km-muted)]">{listing.quantity} {listing.unit} available</div>
+                    <div className="mb-4 text-sm text-[var(--km-muted)]">{listing.quantity} {listing.unit} {t('available', 'Available')}</div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <a
@@ -309,14 +298,14 @@ export default function TraderDashboard() {
                         className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-[var(--km-border)] text-sm font-medium text-[var(--km-text)] transition hover:bg-slate-50"
                       >
                         <Phone className="h-4 w-4" />
-                        Contact
+                        {t('contact', 'Contact')}
                       </a>
                       <button
                         type="button"
                         className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-[var(--km-primary)] text-sm font-semibold text-white transition hover:brightness-95"
                       >
                         <MessageSquare className="h-4 w-4" />
-                        Offer
+                        {t('offer', 'Offer')}
                       </button>
                     </div>
                   </div>

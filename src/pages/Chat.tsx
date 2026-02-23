@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, Send, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { useAppUiStore } from '../stores/appUiStore';
 
@@ -20,6 +21,7 @@ function formatTimeLabel(value?: string | null) {
 
 export default function Chat() {
   const { user, profile } = useAuth();
+  const { t } = useLanguage();
   const selectedConv = useAppUiStore((state) => state.selectedConversationId);
   const setSelectedConv = useAppUiStore((state) => state.setSelectedConversationId);
   const search = useAppUiStore((state) => state.chatSearch);
@@ -58,7 +60,7 @@ export default function Chat() {
   const filteredConversations = useMemo(() => {
     if (!search.trim()) return conversations;
     const query = search.trim().toLowerCase();
-    return conversations.filter((conv) => (conv.subject || 'Chat').toLowerCase().includes(query));
+    return conversations.filter((conv) => (conv.subject || t('chat', 'Chat')).toLowerCase().includes(query));
   }, [conversations, search]);
 
   const loadConversations = async () => {
@@ -187,21 +189,21 @@ export default function Chat() {
   };
 
   if (!user) {
-    return <div className="flex min-h-screen items-center justify-center">Please login to access messaging.</div>;
+    return <div className="flex min-h-screen items-center justify-center">{t('login', 'Login')}</div>;
   }
 
   return (
-    <div className="min-h-screen bg-[var(--km-bg)] pb-16 md:pb-20">
-      <div className="mx-auto grid w-full max-w-[1320px] grid-cols-1 gap-4 px-4 py-5 md:px-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+    <div className="km-page">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-4 px-4 py-5 lg:grid-cols-[360px_minmax(0,1fr)]">
         <section className={`overflow-hidden rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] shadow-[var(--km-shadow-sm)] ${selectedConv ? 'hidden lg:block' : ''}`}>
           <div className="border-b border-[var(--km-border)] p-4">
-            <h2 className="mb-3 text-lg font-semibold text-[var(--km-text)]">Messages</h2>
+            <h2 className="mb-3 text-lg font-semibold text-[var(--km-text)]">{t('messages', 'Messages')}</h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--km-muted)]" />
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search conversations"
+                placeholder={t('search', 'Search')}
                 className="h-10 w-full rounded-lg border border-[var(--km-border)] pl-9 pr-3 text-sm outline-none focus:border-[var(--km-primary)]"
               />
             </div>
@@ -209,9 +211,9 @@ export default function Chat() {
 
           <div className="max-h-[70vh] overflow-y-auto">
             {loadingConversations ? (
-              <div className="p-4 text-sm text-[var(--km-muted)]">Loading conversations...</div>
+              <div className="p-4 text-sm text-[var(--km-muted)]">{t('loading', 'Loading...')}</div>
             ) : filteredConversations.length === 0 ? (
-              <div className="p-4 text-sm text-[var(--km-muted)]">No conversations found.</div>
+              <div className="p-4 text-sm text-[var(--km-muted)]">{t('noData', 'No data found')}</div>
             ) : (
               filteredConversations.map((conv) => (
                 <button
@@ -224,8 +226,8 @@ export default function Chat() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-[var(--km-text)]">{conv.subject || 'Chat'}</div>
-                      <div className="truncate text-xs text-[var(--km-muted)]">{conv.last_message || 'No messages yet'}</div>
+                      <div className="truncate text-sm font-semibold text-[var(--km-text)]">{conv.subject || t('chat', 'Chat')}</div>
+                      <div className="truncate text-xs text-[var(--km-muted)]">{conv.last_message || t('noData', 'No data found')}</div>
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <span className="text-[11px] text-[var(--km-muted)]">{formatTimeLabel(conv.last_activity_at)}</span>
@@ -251,9 +253,9 @@ export default function Chat() {
                 </button>
                 <div>
                   <h3 className="text-sm font-semibold text-[var(--km-text)]">
-                    {conversations.find((conv) => conv.id === selectedConv)?.subject || 'Chat'}
+                    {conversations.find((conv) => conv.id === selectedConv)?.subject || t('chat', 'Chat')}
                   </h3>
-                  <p className="text-xs text-[var(--km-muted)]">Secure conversation</p>
+                  <p className="text-xs text-[var(--km-muted)]">{t('messages', 'Messages')}</p>
                 </div>
               </header>
 
@@ -282,7 +284,7 @@ export default function Chat() {
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   className="h-10 flex-1 rounded-lg border border-[var(--km-border)] px-3 text-sm outline-none focus:border-[var(--km-primary)]"
-                  placeholder="Write a message"
+                  placeholder={t('message', 'Message')}
                 />
                 <button
                   type="submit"
@@ -294,7 +296,7 @@ export default function Chat() {
             </>
           ) : (
             <div className="flex flex-1 items-center justify-center text-sm text-[var(--km-muted)]">
-              Select a conversation to start chatting.
+              {t('chat', 'Chat')}
             </div>
           )}
         </section>

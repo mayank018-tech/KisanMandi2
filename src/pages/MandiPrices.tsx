@@ -24,7 +24,7 @@ export default function MandiPrices() {
   });
 
   useEffect(() => {
-    fetchPrices();
+    void fetchPrices();
   }, []);
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export default function MandiPrices() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center">{t('loading', 'Loading...')}</div>;
   }
 
   return (
@@ -99,15 +99,12 @@ export default function MandiPrices() {
       <header className="km-topbar">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <button
-              onClick={goBack}
-              className="km-btn km-btn-orange p-2"
-            >
+            <button onClick={goBack} className="km-btn km-btn-orange p-2">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
               <h1 className="text-2xl font-bold">{t('mandiPrices')}</h1>
-              <p className="km-topbar-muted">Daily Market Prices</p>
+              <p className="km-topbar-muted">{t('dailyMarketPrices', 'Daily Market Prices')}</p>
             </div>
           </div>
           <select
@@ -116,8 +113,8 @@ export default function MandiPrices() {
             className="px-3 py-2 bg-white text-gray-800 rounded-lg text-sm"
           >
             <option value="en">English</option>
-            <option value="hi">हिंदी</option>
-            <option value="gu">ગુજરાતી</option>
+            <option value="hi">{'\u0939\u093f\u0902\u0926\u0940'}</option>
+            <option value="gu">{'\u0A97\u0AC1\u0A9C\u0AB0\u0ABE\u0AA4\u0AC0'}</option>
           </select>
         </div>
       </header>
@@ -126,13 +123,11 @@ export default function MandiPrices() {
         <div className="km-card mb-6">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
-            {t('filter')} Prices
+            {t('filterPrices', 'Filter Prices')}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('cropName')}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('cropName')}</label>
               <input
                 type="text"
                 value={filters.cropName}
@@ -141,9 +136,7 @@ export default function MandiPrices() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('state')}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('state')}</label>
               <input
                 type="text"
                 value={filters.state}
@@ -152,9 +145,7 @@ export default function MandiPrices() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('district')}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('district')}</label>
               <input
                 type="text"
                 value={filters.district}
@@ -163,9 +154,7 @@ export default function MandiPrices() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mandi Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('mandiName', 'Mandi Name')}</label>
               <input
                 type="text"
                 value={filters.mandi}
@@ -174,9 +163,7 @@ export default function MandiPrices() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                From Date
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('fromDate', 'From Date')}</label>
               <input
                 type="date"
                 value={filters.dateFrom}
@@ -185,9 +172,7 @@ export default function MandiPrices() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                To Date
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('toDate', 'To Date')}</label>
               <input
                 type="date"
                 value={filters.dateTo}
@@ -201,11 +186,11 @@ export default function MandiPrices() {
         <div className="km-card overflow-hidden">
           <div className="p-6">
             <h2 className="text-xl font-bold mb-4">
-              Market Prices ({filteredPrices.length})
+              {t('marketPrices', 'Market Prices')} ({filteredPrices.length})
             </h2>
           </div>
           {filteredPrices.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No price data available</p>
+            <p className="text-gray-500 text-center py-8">{t('noPriceData', 'No price data available')}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -216,19 +201,19 @@ export default function MandiPrices() {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                       <MapPin className="w-4 h-4 inline mr-1" />
-                      Location
+                      {t('location', 'Location')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      Mandi
+                      {t('mandi', 'Mandi')}
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('minPrice')} (₹)
+                      {t('minPrice')} ({'\u20B9'})
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('maxPrice')} (₹)
+                      {t('maxPrice')} ({'\u20B9'})
                     </th>
                     <th className="px-6 py-3 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                      {t('averagePrice')} (₹)
+                      {t('averagePrice')} ({'\u20B9'})
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                       <Calendar className="w-4 h-4 inline mr-1" />
@@ -249,13 +234,13 @@ export default function MandiPrices() {
                         <div className="text-sm text-gray-700">{price.mandi_name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-medium text-red-600">₹{price.min_price}</div>
+                        <div className="text-sm font-medium text-red-600">{'\u20B9'}{price.min_price}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-medium text-green-600">₹{price.max_price}</div>
+                        <div className="text-sm font-medium text-green-600">{'\u20B9'}{price.max_price}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="text-sm font-bold text-blue-600">₹{price.average_price}</div>
+                        <div className="text-sm font-bold text-blue-600">{'\u20B9'}{price.average_price}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-700">
@@ -273,4 +258,3 @@ export default function MandiPrices() {
     </div>
   );
 }
-

@@ -40,7 +40,7 @@ export default function Community() {
 
   const createPostMutation = useMutation({
     mutationFn: async ({ content, files }: { content: string; files: File[] }) => {
-      if (!profile?.id) throw new Error('Missing profile');
+      if (!profile?.id) throw new Error(t('profile', 'Profile'));
 
       const uploadedUrls: string[] = [];
       for (const file of files) {
@@ -152,24 +152,17 @@ export default function Community() {
   }, [queryClient]);
 
   return (
-    <div className="min-h-screen bg-[var(--km-bg)] pb-16 md:pb-20">
-      <header className="border-b border-[var(--km-border)] bg-[var(--km-surface)]">
-        <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between px-4 py-4 md:px-6">
-          <h1 className="text-xl font-semibold text-[var(--km-text)]">{t('community') || 'Community'}</h1>
-          <span className="text-sm text-[var(--km-muted)]">Professional Kisan Network</span>
-        </div>
-      </header>
-
-      <div className="mx-auto grid w-full max-w-[1320px] grid-cols-1 gap-6 px-4 py-6 md:px-6 lg:grid-cols-[280px_minmax(0,680px)_320px]">
+    <div className="km-page">
+      <div className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-6 lg:grid-cols-[280px_minmax(0,680px)_320px]">
         <aside className="hidden lg:block">
           <div className="sticky top-24 rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-5 shadow-[var(--km-shadow-sm)]">
             <div className="mb-3 h-14 w-14 rounded-full bg-slate-200" />
-            <h2 className="text-base font-semibold text-[var(--km-text)]">{profile?.full_name || 'KisanMandi User'}</h2>
+            <h2 className="text-base font-semibold text-[var(--km-text)]">{profile?.full_name || t('appName', 'KisanMandi')}</h2>
             <p className="mt-1 text-sm text-[var(--km-muted)]">
-              {(profile?.role || 'Member').toUpperCase()} {profile?.district ? `- ${profile.district}` : ''}
+              {(profile?.role || t('profile', 'Member')).toUpperCase()} {profile?.district ? `- ${profile.district}` : ''}
             </p>
             <p className="mt-3 text-sm text-[var(--km-muted)]">
-              Stay connected with farmers, traders, and mandi updates in one feed.
+              {t('postsCommentsUpdates', 'Posts, comments and crop updates')}
             </p>
           </div>
         </aside>
@@ -187,19 +180,36 @@ export default function Community() {
           <div className="space-y-4">
             {feedQuery.isLoading ? (
               <div className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-8 text-center text-[var(--km-muted)] shadow-[var(--km-shadow-sm)]">
-                Loading feed...
+                {t('loadingFeed', 'Loading feed...')}
               </div>
             ) : posts.length === 0 ? (
               <div className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-8 text-center text-[var(--km-muted)] shadow-[var(--km-shadow-sm)]">
-                No posts yet. Be the first to share.
+                {t('noPostsYet', 'No posts yet. Be the first to share.')}
               </div>
             ) : (
-              posts.map((post) => <PostCard key={post.id} post={post} />)
+              posts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onDeleted={(postId) => {
+                    queryClient.setQueryData(FEED_QUERY_KEY, (oldData: any) => {
+                      if (!oldData?.pages?.length) return oldData;
+                      return {
+                        ...oldData,
+                        pages: oldData.pages.map((page: FeedPage) => ({
+                          ...page,
+                          items: page.items.filter((item) => item.id !== postId),
+                        })),
+                      };
+                    });
+                  }}
+                />
+              ))
             )}
 
             {feedQuery.isFetchingNextPage && (
               <div className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-4 text-center text-sm text-[var(--km-muted)] shadow-[var(--km-shadow-sm)]">
-                Loading more posts...
+                {t('loading', 'Loading...')}
               </div>
             )}
             <div ref={sentinelRef} />
@@ -209,27 +219,27 @@ export default function Community() {
         <aside className="hidden lg:block">
           <div className="sticky top-24 space-y-4">
             <section className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-5 shadow-[var(--km-shadow-sm)]">
-              <h3 className="text-sm font-semibold text-[var(--km-text)]">Trending Crops</h3>
+              <h3 className="text-sm font-semibold text-[var(--km-text)]">{t('trendingCrops', 'Trending Crops')}</h3>
               <div className="mt-3 space-y-2 text-sm text-[var(--km-muted)]">
-                <div className="rounded-lg bg-slate-50 px-3 py-2">Wheat demand rising in North zone</div>
-                <div className="rounded-lg bg-slate-50 px-3 py-2">Groundnut arrivals up this week</div>
-                <div className="rounded-lg bg-slate-50 px-3 py-2">Cotton quality premium active</div>
+                <div className="rounded-lg bg-slate-50 px-3 py-2">{t('trendWheatNorth', 'Wheat demand rising in North zone')}</div>
+                <div className="rounded-lg bg-slate-50 px-3 py-2">{t('trendGroundnutWeek', 'Groundnut arrivals up this week')}</div>
+                <div className="rounded-lg bg-slate-50 px-3 py-2">{t('trendCottonPremium', 'Cotton quality premium active')}</div>
               </div>
             </section>
             <section className="rounded-xl border border-[var(--km-border)] bg-[var(--km-surface)] p-5 shadow-[var(--km-shadow-sm)]">
-              <h3 className="text-sm font-semibold text-[var(--km-text)]">Mandi Snapshot</h3>
+              <h3 className="text-sm font-semibold text-[var(--km-text)]">{t('mandiSnapshot', 'Mandi Snapshot')}</h3>
               <div className="mt-3 space-y-2 text-sm">
                 <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <span className="text-[var(--km-muted)]">Wheat</span>
-                  <span className="font-semibold text-[var(--km-text)]">Rs 2,350/qtl</span>
+                  <span className="text-[var(--km-muted)]">{t('wheat', 'Wheat')}</span>
+                  <span className="font-semibold text-[var(--km-text)]">{t('wheatRate', 'Rs 2,350/qtl')}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <span className="text-[var(--km-muted)]">Cotton</span>
-                  <span className="font-semibold text-[var(--km-text)]">Rs 6,180/qtl</span>
+                  <span className="text-[var(--km-muted)]">{t('cotton', 'Cotton')}</span>
+                  <span className="font-semibold text-[var(--km-text)]">{t('cottonRate', 'Rs 6,180/qtl')}</span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
-                  <span className="text-[var(--km-muted)]">Maize</span>
-                  <span className="font-semibold text-[var(--km-text)]">Rs 2,070/qtl</span>
+                  <span className="text-[var(--km-muted)]">{t('maize', 'Maize')}</span>
+                  <span className="font-semibold text-[var(--km-text)]">{t('maizeRate', 'Rs 2,070/qtl')}</span>
                 </div>
               </div>
             </section>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
-import { Search, Filter, LogOut, DollarSign, MessageSquare, Phone } from 'lucide-react';
+import { Search, Filter, DollarSign, MessageSquare, Phone } from 'lucide-react';
 import type { Database } from '../lib/database.types';
 
 type CropListing = Database['public']['Tables']['crop_listings']['Row'] & {
@@ -14,8 +14,8 @@ type Offer = Database['public']['Tables']['offers']['Row'] & {
 };
 
 export default function BuyerDashboard() {
-  const { profile, signOut } = useAuth();
-  const { t, language, setLanguage } = useLanguage();
+  const { profile } = useAuth();
+  const { t } = useLanguage();
   const [listings, setListings] = useState<CropListing[]>([]);
   const [myOffers, setMyOffers] = useState<Offer[]>([]);
   const [filteredListings, setFilteredListings] = useState<CropListing[]>([]);
@@ -128,7 +128,7 @@ export default function BuyerDashboard() {
     setShowOfferModal(false);
     setSelectedListing(null);
     fetchMyOffers();
-    alert('Offer sent successfully!');
+    alert(t('offerSentSuccessfully', 'Offer sent successfully!'));
   };
 
   const openOfferModal = (listing: CropListing) => {
@@ -143,33 +143,6 @@ export default function BuyerDashboard() {
 
   return (
     <div className="km-page">
-      <header className="km-topbar">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">{t('appName')}</h1>
-            <p className="km-topbar-muted">{profile?.full_name} - {t('buyer')}</p>
-          </div>
-          <div className="flex gap-3 items-center">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'gu')}
-              className="px-3 py-2 bg-white text-gray-800 rounded-lg text-sm"
-            >
-              <option value="en">English</option>
-              <option value="hi">हिंदी</option>
-              <option value="gu">ગુજરાતી</option>
-            </select>
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-2 bg-blue-700 px-4 py-2 rounded-lg hover:bg-blue-800 transition"
-            >
-              <LogOut className="w-4 h-4" />
-              {t('logout')}
-            </button>
-          </div>
-        </div>
-      </header>
-
       <div className="km-container">
         <div className="flex flex-wrap gap-3 mb-6">
           <button
@@ -192,7 +165,7 @@ export default function BuyerDashboard() {
           <div className="km-card mb-6">
             <h2 className="text-xl font-bold mb-4">{t('myOffers')}</h2>
             {myOffers.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No offers sent yet</p>
+              <p className="text-gray-500 text-center py-8">{t('noOffersSentYet', 'No offers sent yet')}</p>
             ) : (
               <div className="space-y-4">
                 {myOffers.map((offer) => (
@@ -200,7 +173,7 @@ export default function BuyerDashboard() {
                     <div className="flex justify-between items-start mb-2">
                       <div>
                         <p className="font-semibold">{offer.listing.crop_name}</p>
-                        <p className="text-sm text-gray-600">Farmer: {offer.farmer_profile.full_name}</p>
+                        <p className="text-sm text-gray-600">{t('farmer', 'Farmer')}: {offer.farmer_profile.full_name}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-blue-600">₹{offer.offer_price}</p>
@@ -282,7 +255,7 @@ export default function BuyerDashboard() {
         <div className="km-card">
           <h2 className="text-xl font-bold mb-4">{t('searchCrops')} ({filteredListings.length})</h2>
           {filteredListings.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No crops found matching your criteria</p>
+            <p className="text-gray-500 text-center py-8">{t('noCropsMatchCriteria', 'No crops found matching your criteria')}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredListings.map((listing) => (
@@ -327,7 +300,7 @@ export default function BuyerDashboard() {
             <div className="mb-4 p-3 bg-gray-50 rounded-lg">
               <p className="font-semibold">{selectedListing.crop_name}</p>
               <p className="text-sm text-gray-600">{selectedListing.quantity} {selectedListing.unit}</p>
-              <p className="text-sm text-gray-600">Expected: ₹{selectedListing.expected_price}/{selectedListing.unit}</p>
+              <p className="text-sm text-gray-600">{t('expected', 'Expected')}: ₹{selectedListing.expected_price}/{selectedListing.unit}</p>
             </div>
             <form onSubmit={handleSendOffer} className="space-y-4">
               <div>
@@ -379,4 +352,5 @@ export default function BuyerDashboard() {
     </div>
   );
 }
+
 

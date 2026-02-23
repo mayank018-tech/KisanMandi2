@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
-import { Plus, Edit2, Trash2, LogOut, DollarSign, MessageSquare } from 'lucide-react';
+import { Plus, Edit2, Trash2, DollarSign, MessageSquare } from 'lucide-react';
 import { uploadListingImage, addListingImages } from '../features/listings/api';
 import type { Database } from '../lib/database.types';
+import SafeImage from '../components/common/SafeImage';
 
 type CropListing = Database['public']['Tables']['crop_listings']['Row'];
 type Offer = Database['public']['Tables']['offers']['Row'] & {
@@ -12,8 +13,8 @@ type Offer = Database['public']['Tables']['offers']['Row'] & {
 };
 
 export default function FarmerDashboard() {
-  const { profile, signOut } = useAuth();
-  const { t, language, setLanguage } = useLanguage();
+  const { profile } = useAuth();
+  const { t } = useLanguage();
   const [listings, setListings] = useState<CropListing[]>([]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -81,23 +82,23 @@ export default function FarmerDashboard() {
 
     // Validation before submission
     if (!formData.crop_name.trim()) {
-      setSubmitError('Please enter crop name');
+      setSubmitError(t('enterCropName', 'Please enter crop name'));
       return;
     }
     if (!formData.quantity || parseFloat(formData.quantity) <= 0) {
-      setSubmitError('Please enter valid quantity');
+      setSubmitError(t('enterValidQuantity', 'Please enter valid quantity'));
       return;
     }
     if (!formData.expected_price || parseFloat(formData.expected_price) <= 0) {
-      setSubmitError('Please enter valid price');
+      setSubmitError(t('enterValidPrice', 'Please enter valid price'));
       return;
     }
     if (!formData.location.trim()) {
-      setSubmitError('Please enter location');
+      setSubmitError(t('enterLocation', 'Please enter location'));
       return;
     }
     if (!formData.contact_number.trim()) {
-      setSubmitError('Please enter contact number');
+      setSubmitError(t('enterContactNumber', 'Please enter contact number'));
       return;
     }
 
@@ -138,7 +139,7 @@ export default function FarmerDashboard() {
           console.error('Insert error:', error);
           // If error includes "column", it means quality_grade column doesn't exist
           if (error.message.includes('column') || error.message.includes('quality_grade')) {
-            throw new Error('Database migration required. Please run the migration file and try again.');
+            throw new Error(t('databaseMigrationRequired', 'Database migration required. Please run the migration file and try again.'));
           }
           throw new Error(`Insert failed: ${error.message}`);
         }
@@ -146,7 +147,7 @@ export default function FarmerDashboard() {
       }
 
       if (!listingId) {
-        throw new Error('Failed to get listing ID after creation');
+        throw new Error(t('listingIdCreateFailed', 'Failed to get listing ID after creation'));
       }
 
       // Upload images if provided
@@ -166,7 +167,7 @@ export default function FarmerDashboard() {
       }
 
       // Success
-      alert(editingListing ? 'Listing updated successfully!' : 'Listing created successfully!');
+      alert(editingListing ? t('listingUpdated', 'Listing updated successfully!') : t('listingCreated', 'Listing created successfully!'));
 
       setFormData({
         crop_name: '',
@@ -183,7 +184,7 @@ export default function FarmerDashboard() {
       setEditingListing(null);
       await fetchListings();
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Failed to create listing. Please check all fields and try again.';
+      const errorMsg = err instanceof Error ? err.message : t('listingCreateFailed', 'Failed to create listing. Please check all fields and try again.');
       setSubmitError(errorMsg);
       console.error('Listing submission error:', err);
     } finally {
@@ -207,7 +208,7 @@ export default function FarmerDashboard() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this listing?')) {
+    if (confirm(t('confirmDeleteListing', 'Are you sure you want to delete this listing?'))) {
       await supabase.from('crop_listings').delete().eq('id', id);
       fetchListings();
     }
@@ -227,33 +228,6 @@ export default function FarmerDashboard() {
 
   return (
     <div className="km-page">
-      <header className="km-topbar">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold">{t('appName')}</h1>
-            <p className="km-topbar-muted">{profile?.full_name} - {t('farmer')}</p>
-          </div>
-          <div className="flex gap-3 items-center">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'gu')}
-              className="px-3 py-2 bg-white text-gray-800 rounded-lg text-sm"
-            >
-              <option value="en">English</option>
-              <option value="hi">हिंदी</option>
-              <option value="gu">ગુજરાતી</option>
-            </select>
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-2 bg-green-700 px-4 py-2 rounded-lg hover:bg-green-800 transition"
-            >
-              <LogOut className="w-4 h-4" />
-              {t('logout')}
-            </button>
-          </div>
-        </div>
-      </header>
-
       <div className="km-container">
         <div className="flex flex-wrap gap-3 mb-6">
           <button
@@ -372,21 +346,21 @@ export default function FarmerDashboard() {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Quality Grade
+                  {t('qualityGrade', 'Quality Grade')}
                 </label>
                 <select
                   value={formData.quality_grade}
                   onChange={(e) => setFormData({ ...formData, quality_grade: e.target.value as 'A' | 'B' | 'C' })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
                 >
-                  <option value="A">Grade A (Premium)</option>
-                  <option value="B">Grade B (Standard)</option>
-                  <option value="C">Grade C (Economic)</option>
+                  <option value="A">{t('gradeAPremium', 'Grade A (Premium)')}</option>
+                  <option value="B">{t('gradeBStandard', 'Grade B (Standard)')}</option>
+                  <option value="C">{t('gradeCEconomic', 'Grade C (Economic)')}</option>
                 </select>
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Upload Images (Max 6)
+                  {t('uploadImagesMax', 'Upload Images (Max 6)')}
                 </label>
                 <label className="block px-4 py-3 border-2 border-dashed border-green-500 rounded-lg cursor-pointer hover:bg-green-50 text-center">
                   <input
@@ -396,7 +370,7 @@ export default function FarmerDashboard() {
                     onChange={(e) => setUploadedFiles(e.target.files ? Array.from(e.target.files).slice(0, 6) : [])}
                     className="hidden"
                   />
-                  <div className="text-sm text-gray-600">{uploadedFiles.length > 0 ? `${uploadedFiles.length} images selected` : 'Click to upload images'}</div>
+                  <div className="text-sm text-gray-600">{uploadedFiles.length > 0 ? t('imagesSelectedCount', '{count} images selected').replace('{count}', String(uploadedFiles.length)) : t('clickUploadImages', 'Click to upload images')}</div>
                 </label>
               </div>
               {uploadedFiles.length > 0 && (
@@ -429,7 +403,7 @@ export default function FarmerDashboard() {
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
-                  {isSubmitting ? '⏳ Uploading...' : t('save')}
+                  {isSubmitting ? t('uploading', 'Uploading...') : t('save')}
                 </button>
                 <button
                   type="button"
@@ -450,7 +424,7 @@ export default function FarmerDashboard() {
           <div className="km-card mb-6">
             <h2 className="text-xl font-bold mb-4">{t('receivedOffers')}</h2>
             {offers.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No offers received yet</p>
+              <p className="text-gray-500 text-center py-8">{t('noOffersReceivedYet', 'No offers received yet')}</p>
             ) : (
               <div className="space-y-4">
                 {offers.map((offer) => (
@@ -483,14 +457,14 @@ export default function FarmerDashboard() {
         <div className="km-card">
           <h2 className="text-xl font-bold mb-4">{t('myListings')}</h2>
           {listings.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">No listings yet. Add your first listing!</p>
+            <p className="text-gray-500 text-center py-8">{t('noListingsYet', 'No listings yet. Add your first listing!')}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {listings.map((listing) => (
                 <div key={listing.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition">
                   {listingImagesMap[listing.id]?.length > 0 ? (
                     <div className="relative h-40 bg-gray-100 overflow-hidden">
-                      <img
+                      <SafeImage
                         src={listingImagesMap[listing.id][0].url}
                         alt={listing.crop_name}
                         className="w-full h-full object-cover"
@@ -502,7 +476,7 @@ export default function FarmerDashboard() {
                       )}
                     </div>
                   ) : (
-                    <div className="h-40 bg-gray-200 flex items-center justify-center text-gray-400">No image</div>
+                    <div className="h-40 bg-gray-200 flex items-center justify-center text-gray-400">{t('noImage', 'No image')}</div>
                   )}
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-2">
@@ -553,4 +527,5 @@ export default function FarmerDashboard() {
     </div>
   );
 }
+
 

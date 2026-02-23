@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from './contexts/AuthContext';
-import { supabase } from './lib/supabase';
+import { useLanguage } from './contexts/LanguageContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgetPassword from './pages/ForgetPassword';
@@ -11,9 +11,16 @@ import Community from './pages/Community';
 import Chat from './pages/Chat';
 import TraderDashboard from './pages/TraderDashboard';
 import MobileBottomNav from './components/MobileBottomNav';
+import AppHeader from './components/AppHeader';
+import Profile from './pages/Profile';
+import MyNetwork from './pages/MyNetwork';
+import ListingHistory from './pages/ListingHistory';
+import NotificationsPage from './pages/NotificationsPage';
+import Settings from './pages/Settings';
 
 export default function App() {
   const { user, profile, loading } = useAuth();
+  const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState<string>(() => {
     const path = window.location.pathname;
     return path.slice(1) || 'login';
@@ -34,15 +41,24 @@ export default function App() {
     window.history.pushState(null, '', `/${page}`);
   };
 
-  const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      localStorage.removeItem('userId');
-      handleNavigate('login');
-    } catch (err) {
-      console.error('Logout failed', err);
-    }
-  };
+  const pageTitle = useMemo(() => {
+    const map: Record<string, { title: string; subtitle: string }> = {
+      dashboard: { title: t('dashboard', 'Dashboard'), subtitle: t('manageMarketplaceActivity', 'Manage your marketplace activity') },
+      'farmer-dashboard': { title: `${t('farmer', 'Farmer')} ${t('dashboard', 'Dashboard')}`, subtitle: t('manageListingsOffers', 'Manage your listings and offers') },
+      'buyer-dashboard': { title: `${t('buyer', 'Trader')} ${t('dashboard', 'Dashboard')}`, subtitle: t('findCropsSendOffers', 'Find crops and send offers') },
+      community: { title: t('community', 'Community'), subtitle: t('postsCommentsUpdates', 'Posts, comments and crop updates') },
+      chat: { title: t('messages', 'Messages'), subtitle: t('talkToUsers', 'Talk to farmers and traders') },
+      listings: { title: t('listings', 'Listings'), subtitle: t('browseMarketplaceListings', 'Browse marketplace listings') },
+      'trader-dashboard': { title: t('listings', 'Listings'), subtitle: t('browseMarketplaceListings', 'Browse marketplace listings') },
+      'mandi-prices': { title: t('mandiPrices', 'Mandi Prices'), subtitle: t('dailyRatesTrends', 'Daily rates and trends') },
+      profile: { title: t('profile', 'Profile'), subtitle: t('accountInformation', 'Account information') },
+      'my-network': { title: t('myNetwork', 'My Network'), subtitle: t('growConnections', 'Grow your connections') },
+      'listing-history': { title: t('listingHistory', 'Listing History'), subtitle: t('recentPostActivity', 'Your recent post activity') },
+      notifications: { title: t('notifications', 'Notifications'), subtitle: t('unreadRecentUpdates', 'Unread and recent updates') },
+      settings: { title: t('settings', 'Settings'), subtitle: t('languagePreferences', 'Language and preferences') },
+    };
+    return map[currentPage] || { title: t('appName', 'KisanMandi'), subtitle: t('agricultureSocialMarketplace', 'Agriculture social marketplace') };
+  }, [currentPage, t]);
 
   if (loading) {
     return (
@@ -52,131 +68,41 @@ export default function App() {
     );
   }
 
-  // Community and Chat are accessible when logged in
-  if (currentPage === 'community') {
-    return (
-      <>
-        <Community />
-        <MobileBottomNav
-          currentPage={currentPage}
-          onNavigate={handleNavigate}
-          userRole={profile?.role}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
-
-  if (currentPage === 'chat') {
-    return (
-      <>
-        <Chat />
-        <MobileBottomNav
-          currentPage={currentPage}
-          onNavigate={handleNavigate}
-          userRole={profile?.role}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
-
-  if (currentPage === 'trader-dashboard' || currentPage === 'browse-listings' || currentPage === 'listings') {
-    return (
-      <>
-        <TraderDashboard />
-        <MobileBottomNav
-          currentPage="listings"
-          onNavigate={handleNavigate}
-          userRole={profile?.role}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
-
-  // If not logged in, show login/signup/forgot password pages
   if (!user) {
-    if (currentPage === 'signup') {
-      return <Signup />;
-    }
-    if (currentPage === 'forgot-password') {
-      return <ForgetPassword />;
-    }
+    if (currentPage === 'signup') return <Signup />;
+    if (currentPage === 'forgot-password') return <ForgetPassword />;
     return <Login />;
   }
 
-  // If logged in, show dashboard based on role
-  if (currentPage === 'mandi-prices') {
-    return (
-      <>
-        <MandiPrices />
-        <MobileBottomNav
-          currentPage={currentPage}
-          onNavigate={handleNavigate}
-          userRole={profile?.role}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
+  const renderPage = () => {
+    if (currentPage === 'community') return <Community />;
+    if (currentPage === 'chat') return <Chat />;
+    if (currentPage === 'trader-dashboard' || currentPage === 'browse-listings' || currentPage === 'listings') return <TraderDashboard />;
+    if (currentPage === 'mandi-prices') return <MandiPrices />;
+    if (currentPage === 'profile') return <Profile />;
+    if (currentPage === 'my-network') return <MyNetwork />;
+    if (currentPage === 'listing-history') return <ListingHistory />;
+    if (currentPage === 'notifications') return <NotificationsPage />;
+    if (currentPage === 'settings') return <Settings />;
 
-  if (profile?.role === 'farmer' && (currentPage === 'dashboard' || currentPage === 'farmer-dashboard' || currentPage === '')) {
-    return (
-      <>
-        <FarmerDashboard />
-        <MobileBottomNav
-          currentPage="dashboard"
-          onNavigate={handleNavigate}
-          userRole={profile?.role}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
+    if (profile?.role === 'farmer' && (currentPage === 'dashboard' || currentPage === 'farmer-dashboard' || currentPage === '')) {
+      return <FarmerDashboard />;
+    }
 
-  if (profile?.role === 'buyer' && (currentPage === 'dashboard' || currentPage === 'buyer-dashboard' || currentPage === '')) {
-    return (
-      <>
-        <BuyerDashboard />
-        <MobileBottomNav
-          currentPage="dashboard"
-          onNavigate={handleNavigate}
-          userRole={profile?.role}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
+    if (profile?.role === 'buyer' && (currentPage === 'dashboard' || currentPage === 'buyer-dashboard' || currentPage === '')) {
+      return <BuyerDashboard />;
+    }
 
-  if (profile?.role === 'farmer') {
-    return (
-      <>
-        <FarmerDashboard />
-        <MobileBottomNav
-          currentPage="dashboard"
-          onNavigate={handleNavigate}
-          userRole={profile?.role}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
+    if (profile?.role === 'farmer') return <FarmerDashboard />;
+    if (profile?.role === 'buyer') return <BuyerDashboard />;
+    return <Login />;
+  };
 
-  if (profile?.role === 'buyer') {
-    return (
-      <>
-        <BuyerDashboard />
-        <MobileBottomNav
-          currentPage="dashboard"
-          onNavigate={handleNavigate}
-          userRole={profile?.role}
-          onLogout={handleLogout}
-        />
-      </>
-    );
-  }
-
-  // Default to login if no role
-  return <Login />;
+  return (
+    <>
+      <AppHeader title={pageTitle.title} subtitle={pageTitle.subtitle} />
+      {renderPage()}
+      <MobileBottomNav currentPage={currentPage} onNavigate={handleNavigate} userRole={profile?.role} />
+    </>
+  );
 }

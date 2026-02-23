@@ -80,9 +80,12 @@ export async function unlikePost(postId: string, userId: string) {
 }
 
 export async function addComment(postId: string, userId: string, content: string) {
-  const { data, error } = await supabase.from('post_comments').insert([
-    { post_id: postId, user_id: userId, content },
-  ]).select('*').single();
+  const { data, error } = await supabase
+    .from('post_comments')
+    .insert([{ post_id: postId, user_id: userId, content }])
+    .select('*, user_profiles: user_id(user_profiles!inner(*))')
+    .single();
+
   return { data, error };
 }
 

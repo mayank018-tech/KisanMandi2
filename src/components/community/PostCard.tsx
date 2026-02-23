@@ -50,16 +50,23 @@ export default function PostCard({ post }: { post: any }) {
     setComments((s) => [...s, temp]);
     setCommentText('');
     try {
-      const { data, error } = await addComment(post.id, profile.id, temp.content);
-      if (error) throw error;
+      console.log('Posting comment', { postId: post.id, userId: profile.id, content: temp.content });
+      const result = await addComment(post.id, profile.id, temp.content);
+      console.log('addComment result', result);
+      const { data, error } = result;
+      if (error) {
+        alert('Comment error: ' + (error.message || JSON.stringify(error)));
+        throw error;
+      }
       // replace temp with real comment
       setComments((s) => s.map((c) => (c.id === temp.id ? data : c)));
-    } catch (err) {
+    } catch (err: any) {
       console.error('Comment failed', err);
       setComments((s) => s.filter((c) => c.id !== temp.id));
-      alert('Failed to add comment');
+      alert('Failed to add comment: ' + (err?.message || JSON.stringify(err)));
+    } finally {
+      setCommentLoading(false);
     }
-    setCommentLoading(false);
   };
 
   const openComments = async () => {

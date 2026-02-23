@@ -4,12 +4,15 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
 import { followUser, unfollowUser } from '../features/community/api';
 import { navigateTo } from '../lib/navigation';
+import { useAppUiStore } from '../stores/appUiStore';
 
 export default function MyNetwork() {
   const { profile } = useAuth();
   const { t } = useLanguage();
   const [users, setUsers] = useState<any[]>([]);
   const [following, setFollowing] = useState<Set<string>>(new Set());
+   const [startingChatId, setStartingChatId] = useState<string | null>(null);
+  const setSelectedConversationId = useAppUiStore((s) => s.setSelectedConversationId);
 
   useEffect(() => {
     const load = async () => {
@@ -65,6 +68,14 @@ export default function MyNetwork() {
                   >
                     {isFollowing ? t('unfollow', 'Unfollow') : t('follow', 'Follow')}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => void startConversation(user)}
+                    className="mt-2 w-full rounded-lg border border-[var(--km-border)] px-3 py-1.5 text-sm font-semibold text-[var(--km-primary)] hover:bg-[var(--km-primary-soft)]"
+                    disabled={startingChatId === user.id}
+                  >
+                    {startingChatId === user.id ? t('loading', 'Loading...') : t('chat', 'Chat')}
+                  </button>
                 </article>
               );
             })}
@@ -73,4 +84,55 @@ export default function MyNetwork() {
       </div>
     </div>
   );
+
+  async function startConversation(target: { id: string; full_name?: string }) {
+    if (!profile?.id) return;
+    setStartingChatId(target.id);
+    try {
+      // Check for existing 1:1 conversation
+      const { data: existing, error: existingError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', profile.id);
+      if (existingError) throw existingError;
+      let conversationId: string | null = null;
+      if (existing?.length) {
+        const convIds = existing.map((r) => r.conversation_id);
+        const { data: match } = await supabase
+          .from('conversation_participants')
+          .select('conversation_id')
+          .eq('user_id', target.id)
+          .in('conversation_id', convIds)
+          .limit(1);
+        if (match && match.length > 0) {
+          conversationId = match[0].conversation_id;
+        }
+      }
+
+      if (!conversationId) {
+        const subject = `${profile.full_name || t('chat', 'Chat')} & ${target.full_name || t('chat', 'Chat')}`;
+        const { data: conv, error: convErr } = await supabase
+          .from('conversations')
+          .insert({ subject })
+          .select('id')
+          .single();
+        if (convErr) throw convErr;
+        conversationId = conv.id;
+
+        const participants = [
+          { conversation_id: conversationId, user_id: profile.id },
+          { conversation_id: conversationId, user_id: target.id },
+        ];
+        const { error: partErr } = await supabase.from('conversation_participants').insert(participants);
+        if (partErr) throw partErr;
+      }
+
+      setSelectedConversationId(conversationId);
+      navigateTo('chat');
+    } catch (err) {
+      console.error('Failed to start conversation', err);
+    } finally {
+      setStartingChatId(null);
+    }
+  }
 }

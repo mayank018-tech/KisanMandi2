@@ -1,13 +1,19 @@
 import { supabase } from '../../lib/supabase';
 
 export async function uploadListingImage(userId: string, listingId: string, file: File) {
-  const timestamp = Date.now();
-  const path = `${userId}/${listingId}/${timestamp}_${file.name.replace(/\s+/g, '_')}`;
+  const safeName = file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+  const ext = safeName.split('.').pop() || 'jpg';
+  const unique = (crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}_${Math.random().toString(36).slice(2)}`);
+  const path = `${userId}/${listingId}/${unique}.${ext}`;
   const bucket = 'listings';
 
   const { error: uploadError } = await supabase.storage
     .from(bucket)
-    .upload(path, file, { cacheControl: '3600', upsert: false });
+    .upload(path, file, {
+      cacheControl: '3600',
+      upsert: true, // avoid failures on name collisions
+      contentType: file.type || 'application/octet-stream',
+    });
 
   if (uploadError) throw uploadError;
   const { data } = supabase.storage.from(bucket).getPublicUrl(path);
@@ -15,6 +21,7 @@ export async function uploadListingImage(userId: string, listingId: string, file
 }
 
 export async function addListingImages(listingId: string, urls: string[]) {
+  if (!urls.length) return;
   const imageRows = urls.map((url, i) => ({ listing_id: listingId, url, ordering: i }));
   const { error } = await supabase.from('listing_images').insert(imageRows);
   if (error) throw error;

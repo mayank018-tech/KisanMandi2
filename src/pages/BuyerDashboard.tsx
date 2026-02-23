@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
-import { Search, Filter, DollarSign, MessageSquare, Phone } from 'lucide-react';
+import { Search, Filter, DollarSign, MessageSquare, Phone, IndianRupee } from 'lucide-react';
+import SafeImage from '../components/common/SafeImage';
 import type { Database } from '../lib/database.types';
 
 type CropListing = Database['public']['Tables']['crop_listings']['Row'] & {
   farmer_profile: { full_name: string; state: string; district: string };
+  listing_images?: { url: string }[];
 };
 type Offer = Database['public']['Tables']['offers']['Row'] & {
   listing: { crop_name: string };
@@ -22,6 +24,8 @@ export default function BuyerDashboard() {
   const [showOfferModal, setShowOfferModal] = useState(false);
   const [showMyOffers, setShowMyOffers] = useState(false);
   const [selectedListing, setSelectedListing] = useState<CropListing | null>(null);
+  const [detailListing, setDetailListing] = useState<CropListing | null>(null);
+  const [detailImageIndex, setDetailImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const [filters, setFilters] = useState({
@@ -51,7 +55,8 @@ export default function BuyerDashboard() {
       .from('crop_listings')
       .select(`
         *,
-        farmer_profile:user_profiles!crop_listings_farmer_id_fkey(full_name, state, district)
+        farmer_profile:user_profiles!crop_listings_farmer_id_fkey(full_name, state, district),
+        listing_images(*)
       `)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
@@ -137,6 +142,11 @@ export default function BuyerDashboard() {
     setShowOfferModal(true);
   };
 
+  const openDetail = (listing: CropListing) => {
+    setDetailListing(listing);
+    setDetailImageIndex(0);
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -156,8 +166,8 @@ export default function BuyerDashboard() {
             href="/mandi-prices"
             className="km-btn km-btn-orange w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg"
           >
-            <DollarSign className="w-5 h-5" />
-            {t('mandiPrices')}
+            <IndianRupee className="w-5 h-5" />
+            {t('mandiPrices', 'Mandi Price')}
           </a>
         </div>
 
@@ -258,41 +268,154 @@ export default function BuyerDashboard() {
             <p className="text-gray-500 text-center py-8">{t('noCropsMatchCriteria', 'No crops found matching your criteria')}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredListings.map((listing) => (
-                <div key={listing.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition">
-                  <h3 className="text-lg font-bold text-gray-800 mb-2">{listing.crop_name}</h3>
-                  <div className="space-y-1 text-sm text-gray-600 mb-4">
-                    <p><span className="font-semibold">{t('quantity')}:</span> {listing.quantity} {listing.unit}</p>
-                    <p><span className="font-semibold">{t('expectedPrice')}:</span> ₹{listing.expected_price}/{listing.unit}</p>
-                    <p><span className="font-semibold">{t('location')}:</span> {listing.location}</p>
-                    <p><span className="font-semibold">{t('farmer')}:</span> {listing.farmer_profile.full_name}</p>
-                    <p><span className="font-semibold">{t('district')}:</span> {listing.farmer_profile.district}</p>
+              {filteredListings.map((listing) => {
+                const firstImage = listing.listing_images?.[0]?.url;
+                return (
+                  <div
+                    key={listing.id}
+                    className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition cursor-pointer"
+                    onClick={() => openDetail(listing)}
+                  >
+                    <div className="h-40 bg-gray-100">
+                      {firstImage ? (
+                        <SafeImage src={firstImage} alt={listing.crop_name} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-sm text-gray-400">{t('noImage', 'No image')}</div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-lg font-bold text-gray-800 mb-2">{listing.crop_name}</h3>
+                      <div className="space-y-1 text-sm text-gray-600 mb-4">
+                        <p><span className="font-semibold">{t('quantity')}:</span> {listing.quantity} {listing.unit}</p>
+                        <p><span className="font-semibold">{t('expectedPrice')}:</span> ₹{listing.expected_price}/{listing.unit}</p>
+                        <p><span className="font-semibold">{t('location')}:</span> {listing.location}</p>
+                        <p><span className="font-semibold">{t('farmer')}:</span> {listing.farmer_profile.full_name}</p>
+                        <p><span className="font-semibold">{t('district')}:</span> {listing.farmer_profile.district}</p>
+                      </div>
+                      {listing.description && (
+                        <p className="text-sm text-gray-700 mb-4 line-clamp-2">{listing.description}</p>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openOfferModal(listing)}
+                          className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          {t('sendOffer')}
+                        </button>
+                        <a
+                          href={`tel:${listing.contact_number}`}
+                          className="flex items-center justify-center bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition"
+                        >
+                          <Phone className="w-4 h-4" />
+                        </a>
+                      </div>
+                    </div>
                   </div>
-                  {listing.description && (
-                    <p className="text-sm text-gray-700 mb-4 line-clamp-2">{listing.description}</p>
-                  )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openOfferModal(listing)}
-                      className="flex-1 flex items-center justify-center gap-1 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      {t('sendOffer')}
-                    </button>
-                    <a
-                      href={`tel:${listing.contact_number}`}
-                      className="flex items-center justify-center bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700 transition"
-                    >
-                      <Phone className="w-4 h-4" />
-                    </a>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </div>
 
+      {/* Listing detail modal */}
+      {detailListing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="relative w-full max-w-3xl rounded-2xl bg-white shadow-2xl">
+            <button
+              onClick={() => setDetailListing(null)}
+              className="absolute right-3 top-3 rounded-full bg-black/10 px-3 py-1 text-sm font-semibold text-gray-700 hover:bg-black/15"
+            >
+              ✕
+            </button>
+            <div className="grid gap-4 p-4 md:grid-cols-[1.3fr_1fr]">
+              <div className="relative overflow-hidden rounded-xl bg-gray-100 h-72 md:h-full">
+                {detailListing.listing_images?.length ? (
+                  <SafeImage
+                    src={detailListing.listing_images[detailImageIndex]?.url}
+                    alt={detailListing.crop_name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-[var(--km-muted)]">
+                    {t('noImage', 'No image')}
+                  </div>
+                )}
+                {detailListing.listing_images && detailListing.listing_images.length > 1 && (
+                  <>
+                    <button
+                      className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white"
+                      onClick={() =>
+                        setDetailImageIndex((i) =>
+                          i === 0 ? detailListing.listing_images!.length - 1 : i - 1
+                        )
+                      }
+                    >
+                      ‹
+                    </button>
+                    <button
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white"
+                      onClick={() =>
+                        setDetailImageIndex((i) =>
+                          i === detailListing.listing_images!.length - 1 ? 0 : i + 1
+                        )
+                      }
+                    >
+                      ›
+                    </button>
+                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                      {detailListing.listing_images.map((_, idx) => (
+                        <span
+                          key={idx}
+                          className={`h-2 w-2 rounded-full ${idx === detailImageIndex ? 'bg-white' : 'bg-white/50'}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+              <div className="space-y-3">
+                <div className="km-pill w-fit">
+                  {detailListing.quantity} {detailListing.unit} · ₹{detailListing.expected_price}/{detailListing.unit}
+                </div>
+                <h3 className="text-xl font-semibold text-[var(--km-text)]">{detailListing.crop_name}</h3>
+                <p className="text-sm text-[var(--km-muted)]">
+                  {detailListing.location} · {detailListing.farmer_profile.district}, {detailListing.farmer_profile.state}
+                </p>
+                {detailListing.description && (
+                  <p className="text-sm text-[var(--km-text)] leading-relaxed">{detailListing.description}</p>
+                )}
+                <div className="text-sm text-[var(--km-muted)]">
+                  <div>
+                    <span className="font-semibold">{t('farmer', 'Farmer')}:</span> {detailListing.farmer_profile.full_name}
+                  </div>
+                  <div>
+                    <span className="font-semibold">{t('contactNumber', 'Contact Number')}:</span> {detailListing.contact_number}
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={() => {
+                      setSelectedListing(detailListing);
+                      setShowOfferModal(true);
+                    }}
+                    className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-sm font-semibold"
+                  >
+                    {t('sendOffer')}
+                  </button>
+                  <a
+                    href={`tel:${detailListing.contact_number}`}
+                    className="flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition text-sm font-semibold"
+                  >
+                    <Phone className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {showOfferModal && selectedListing && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">

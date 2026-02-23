@@ -102,6 +102,7 @@ export const translations: Record<string, Record<Language, string>> = {
   trendWheatNorth: { en: 'Wheat demand rising in North zone', hi: 'उत्तर क्षेत्र में गेहूं की मांग बढ़ रही है', gu: 'ઉત્તર વિસ્તારમાં ઘઉંની માંગ વધી રહી છે' },
   trendGroundnutWeek: { en: 'Groundnut arrivals up this week', hi: 'इस सप्ताह मूंगफली की आवक बढ़ी', gu: 'આ અઠવાડિયે શિંગદાણાની આવક વધી' },
   trendCottonPremium: { en: 'Cotton quality premium active', hi: 'कपास गुणवत्ता प्रीमियम सक्रिय', gu: 'કપાસ ગુણવત્તા પ્રીમિયમ સક્રિય' },
+  mandiPrices: { en: 'Mandi Prices', hi: 'मंडी भाव', gu: 'મંડી ભાવ' },
   mandiSnapshot: { en: 'Mandi Snapshot', hi: 'मंडी स्नैपशॉट', gu: 'મંડી સ્નેપશોટ' },
   wheat: { en: 'Wheat', hi: 'गेहूं', gu: 'ઘઉં' },
   wheatRate: { en: 'Rs 2,350/qtl', hi: '₹ 2,350/क्विंटल', gu: '₹ 2,350/ક્વિન્ટલ' },
@@ -127,6 +128,10 @@ export const translations: Record<string, Record<Language, string>> = {
   marketPrices: { en: 'Market Prices', hi: 'बाजार भाव', gu: 'બજાર ભાવ' },
   noPriceData: { en: 'No price data available', hi: 'कोई भाव डेटा उपलब्ध नहीं', gu: 'કોઈ ભાવ ડેટા ઉપલબ્ધ નથી' },
   mandi: { en: 'Mandi', hi: 'मंडी', gu: 'મંડી' },
+  language: { en: 'Language', hi: 'भाषा', gu: 'ભાષા' },
+  langEnglish: { en: 'English', hi: 'अंग्रेज़ी', gu: 'અંગ્રેજી' },
+  langHindi: { en: 'हिंदी', hi: 'हिंदी', gu: 'હિન્દી' },
+  langGujarati: { en: 'ગુજરાતી', hi: 'गुजराती', gu: 'ગુજરાતી' },
   offerSentSuccessfully: { en: 'Offer sent successfully!', hi: 'ऑफर सफलतापूर्वक भेजा गया!', gu: 'ઓફર સફળતાપૂર્વક મોકલાયો!' },
   noOffersSentYet: { en: 'No offers sent yet', hi: 'अभी तक कोई ऑफर नहीं भेजा गया', gu: 'હજુ સુધી કોઈ ઓફર મોકલાયો નથી' },
   noCropsMatchCriteria: { en: 'No crops found matching your criteria', hi: 'आपके मानदंड के अनुसार कोई फसल नहीं मिली', gu: 'તમારા માપદંડ મુજબ કોઈ પાક મળ્યો નથી' },
@@ -153,5 +158,5 @@ export const translations: Record<string, Record<Language, string>> = {
   noOffersReceivedYet: { en: 'No offers received yet', hi: 'अभी तक कोई ऑफर प्राप्त नहीं हुआ', gu: 'હજુ સુધી કોઈ ઓફર મળ્યો નથી' },
   noListingsYet: { en: 'No listings yet. Add your first listing!', hi: 'अभी तक कोई लिस्टिंग नहीं। अपनी पहली लिस्टिंग जोड़ें!', gu: 'હજુ સુધી કોઈ લિસ્ટિંગ નથી. તમારી પહેલી લિસ્ટિંગ ઉમેરો!' },
   noImage: { en: 'No image', hi: 'कोई छवि नहीं', gu: 'કોઈ છબી નથી' },
+  records: { en: 'records', hi: 'रिकॉर्ड', gu: 'રેકોર્ડ' },
 };
-

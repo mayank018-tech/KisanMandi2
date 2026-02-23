@@ -59,13 +59,15 @@ export default function AppHeader({ title, subtitle }: AppHeaderProps) {
 
         <div className="flex items-center gap-2">
           <select
+            aria-label={t('language', 'Language')}
+            title={t('language', 'Language')}
             value={language}
             onChange={(e) => setLanguage(e.target.value as 'en' | 'hi' | 'gu')}
-            className="rounded-lg border border-white/40 bg-white/15 px-2 py-1.5 text-xs text-white md:text-sm"
+            className="rounded-lg border border-[var(--km-border)] bg-white px-3 py-2 text-xs text-gray-800 shadow-sm md:text-sm"
           >
-            <option value="en">EN</option>
-            <option value="hi">HI</option>
-            <option value="gu">GU</option>
+            <option value="en">{t('langEnglish', 'English')}</option>
+            <option value="hi">{t('langHindi', 'हिंदी')}</option>
+            <option value="gu">{t('langGujarati', 'ગુજરાતી')}</option>
           </select>
 
           <div className="relative">

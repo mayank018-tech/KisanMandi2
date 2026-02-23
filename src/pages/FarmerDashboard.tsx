@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
-import { Plus, Edit2, Trash2, DollarSign, MessageSquare } from 'lucide-react';
+import { Plus, Edit2, Trash2, DollarSign, MessageSquare, IndianRupee } from 'lucide-react';
 import { uploadListingImage, addListingImages } from '../features/listings/api';
 import type { Database } from '../lib/database.types';
 import SafeImage from '../components/common/SafeImage';
@@ -150,14 +150,12 @@ export default function FarmerDashboard() {
         throw new Error(t('listingIdCreateFailed', 'Failed to get listing ID after creation'));
       }
 
-      // Upload images if provided
+      // Upload images if provided (parallel to handle multiple files)
       if (uploadedFiles.length > 0) {
         try {
-          const uploadedUrls: string[] = [];
-          for (const file of uploadedFiles) {
-            const url = await uploadListingImage(profile!.id, listingId, file);
-            uploadedUrls.push(url);
-          }
+          const uploadedUrls = await Promise.all(
+            uploadedFiles.map((file) => uploadListingImage(profile!.id, listingId, file))
+          );
           await addListingImages(listingId, uploadedUrls);
         } catch (imgErr) {
           console.error('Failed to upload images', imgErr);
@@ -255,8 +253,8 @@ export default function FarmerDashboard() {
             href="/mandi-prices"
             className="km-btn km-btn-orange w-full sm:w-auto px-4 py-2 sm:px-6 sm:py-3 text-base sm:text-lg"
           >
-            <DollarSign className="w-5 h-5" />
-            {t('mandiPrices')}
+            <IndianRupee className="w-5 h-5" />
+            {t('mandiPrices', 'Mandi Price')}
           </a>
         </div>
 

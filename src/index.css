@@ -187,6 +187,6 @@
   }
 
   .km-input {
-    @apply w-full rounded-lg border border-[var(--km-border)] px-4 py-2 text-sm outline-none transition focus:border-[var(--km-primary)] focus:ring-2 focus:ring-[var(--km-primary)]/30;
+    @apply w-full rounded-lg border border-[var(--km-border)] px-4 py-2 text-sm outline-none transition focus:border-[var(--km-primary)] focus:ring-2 focus:ring-green-200;
   }
 }

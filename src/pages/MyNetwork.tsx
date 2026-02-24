@@ -11,7 +11,7 @@ export default function MyNetwork() {
   const { t } = useLanguage();
   const [users, setUsers] = useState<any[]>([]);
   const [following, setFollowing] = useState<Set<string>>(new Set());
-   const [startingChatId, setStartingChatId] = useState<string | null>(null);
+  const [startingChatId, setStartingChatId] = useState<string | null>(null);
   const setSelectedConversationId = useAppUiStore((s) => s.setSelectedConversationId);
 
   useEffect(() => {
@@ -41,9 +41,15 @@ export default function MyNetwork() {
               return (
                 <article key={user.id} className="rounded-lg border border-[var(--km-border)] bg-white p-4">
                   <button className="text-left" onClick={() => navigateTo(`profile?user=${user.id}`)}>
-                    <div className="font-semibold">{user.full_name}</div>
-                    <div className="text-sm text-[var(--km-muted)]">{user.role}</div>
-                    <div className="text-xs text-[var(--km-muted)]">{[user.district, user.state].filter(Boolean).join(', ')}</div>
+                    <div className="font-semibold">
+                      {t('name', 'Name')}: {user.full_name}
+                    </div>
+                    <div className="text-sm text-[var(--km-muted)]">
+                      {t('role', 'Role')}: {user.role ? t(user.role, user.role) : t('member', 'Member')}
+                    </div>
+                    <div className="text-xs text-[var(--km-muted)]">
+                      {t('district', 'District')}: {user.district || '-'} | {t('state', 'State')}: {user.state || '-'}
+                    </div>
                   </button>
                   <button
                     type="button"
@@ -97,13 +103,14 @@ export default function MyNetwork() {
       if (existingError) throw existingError;
       let conversationId: string | null = null;
       if (existing?.length) {
-        const convIds = existing.map((r) => r.conversation_id);
-        const { data: match } = await supabase
+        const convIds = existing.map((r: any) => r.conversation_id);
+        const { data: match, error: matchError } = await supabase
           .from('conversation_participants')
           .select('conversation_id')
           .eq('user_id', target.id)
           .in('conversation_id', convIds)
           .limit(1);
+        if (matchError) throw matchError;
         if (match && match.length > 0) {
           conversationId = match[0].conversation_id;
         }
@@ -119,13 +126,22 @@ export default function MyNetwork() {
         if (convErr) throw convErr;
         conversationId = conv.id;
 
-        const participants = [
-          { conversation_id: conversationId, user_id: profile.id },
-          { conversation_id: conversationId, user_id: target.id },
-        ];
-        const { error: partErr } = await supabase.from('conversation_participants').insert(participants);
-        if (partErr) throw partErr;
+        const { error: selfErr } = await supabase
+          .from('conversation_participants')
+          .insert({ conversation_id: conversationId, user_id: profile.id });
+        if (selfErr && selfErr.code !== '23505') throw selfErr;
       }
+
+      const { error: targetErr } = await supabase
+        .from('conversation_participants')
+        .insert({ conversation_id: conversationId, user_id: target.id });
+      if (targetErr && targetErr.code !== '23505') throw targetErr;
+
+      await supabase
+        .from('conversation_participants')
+        .update({ hidden_at: null } as any)
+        .eq('conversation_id', conversationId)
+        .eq('user_id', profile.id);
 
       setSelectedConversationId(conversationId);
       navigateTo('chat');

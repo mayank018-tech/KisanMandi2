@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
-import { Plus, Edit2, Trash2, DollarSign, MessageSquare, IndianRupee } from 'lucide-react';
+import { Plus, Edit2, Trash2, MessageSquare, IndianRupee } from 'lucide-react';
 import { uploadListingImage, addListingImages } from '../features/listings/api';
 import type { Database } from '../lib/database.types';
 import SafeImage from '../components/common/SafeImage';
@@ -429,8 +429,8 @@ export default function FarmerDashboard() {
                   <div key={offer.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="font-semibold">{offer.buyer_profile.full_name}</p>
-                        <p className="text-sm text-gray-600">{offer.buyer_profile.mobile_number}</p>
+                        <p className="font-semibold">{t('name', 'Name')}: {offer.buyer_profile.full_name}</p>
+                        <p className="text-sm text-gray-600">{t('contactNumber', 'Contact Number')}: {offer.buyer_profile.mobile_number}</p>
                       </div>
                       <div className="text-right">
                         <p className="text-lg font-bold text-green-600">₹{offer.offer_price}</p>

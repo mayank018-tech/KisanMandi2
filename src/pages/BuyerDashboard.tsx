@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabase';
-import { Search, Filter, DollarSign, MessageSquare, Phone, IndianRupee } from 'lucide-react';
+import { Search, Filter, MessageSquare, Phone, IndianRupee } from 'lucide-react';
 import SafeImage from '../components/common/SafeImage';
 import type { Database } from '../lib/database.types';
 
@@ -291,6 +291,7 @@ export default function BuyerDashboard() {
                         <p><span className="font-semibold">{t('location')}:</span> {listing.location}</p>
                         <p><span className="font-semibold">{t('farmer')}:</span> {listing.farmer_profile.full_name}</p>
                         <p><span className="font-semibold">{t('district')}:</span> {listing.farmer_profile.district}</p>
+                        <p><span className="font-semibold">{t('state')}:</span> {listing.farmer_profile.state}</p>
                       </div>
                       {listing.description && (
                         <p className="text-sm text-gray-700 mb-4 line-clamp-2">{listing.description}</p>
@@ -381,7 +382,7 @@ export default function BuyerDashboard() {
                 </div>
                 <h3 className="text-xl font-semibold text-[var(--km-text)]">{detailListing.crop_name}</h3>
                 <p className="text-sm text-[var(--km-muted)]">
-                  {detailListing.location} · {detailListing.farmer_profile.district}, {detailListing.farmer_profile.state}
+                  {detailListing.location} | {t('district', 'District')}: {detailListing.farmer_profile.district} | {t('state', 'State')}: {detailListing.farmer_profile.state}
                 </p>
                 {detailListing.description && (
                   <p className="text-sm text-[var(--km-text)] leading-relaxed">{detailListing.description}</p>
@@ -475,5 +476,6 @@ export default function BuyerDashboard() {
     </div>
   );
 }
+
 
 

@@ -17,10 +17,15 @@ import MyNetwork from './pages/MyNetwork';
 import ListingHistory from './pages/ListingHistory';
 import NotificationsPage from './pages/NotificationsPage';
 import Settings from './pages/Settings';
+import ToastViewport from './components/common/ToastViewport';
+import Listings from './pages/Listings';
 
 export default function App() {
   const { user, profile, loading } = useAuth();
   const { t } = useLanguage();
+  const role = (profile?.role || '').toLowerCase();
+  const isFarmer = role === 'farmer';
+  const isTrader = role === 'buyer' || role === 'trader';
   const [currentPage, setCurrentPage] = useState<string>(() => {
     const path = window.location.pathname;
     return path.slice(1) || 'login';
@@ -74,10 +79,19 @@ export default function App() {
     return <Login />;
   }
 
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl font-semibold">{t('loading', 'Loading...')}</div>
+      </div>
+    );
+  }
+
   const renderPage = () => {
     if (currentPage === 'community') return <Community />;
     if (currentPage === 'chat') return <Chat />;
-    if (currentPage === 'trader-dashboard' || currentPage === 'browse-listings' || currentPage === 'listings') return <TraderDashboard />;
+    if (currentPage === 'trader-dashboard' || currentPage === 'browse-listings') return <TraderDashboard />;
+    if (currentPage === 'listings') return <Listings />;
     if (currentPage === 'mandi-prices') return <MandiPrices />;
     if (currentPage === 'profile') return <Profile />;
     if (currentPage === 'my-network') return <MyNetwork />;
@@ -85,17 +99,17 @@ export default function App() {
     if (currentPage === 'notifications') return <NotificationsPage />;
     if (currentPage === 'settings') return <Settings />;
 
-    if (profile?.role === 'farmer' && (currentPage === 'dashboard' || currentPage === 'farmer-dashboard' || currentPage === '')) {
+    if (isFarmer && (currentPage === 'dashboard' || currentPage === 'farmer-dashboard' || currentPage === '')) {
       return <FarmerDashboard />;
     }
 
-    if (profile?.role === 'buyer' && (currentPage === 'dashboard' || currentPage === 'buyer-dashboard' || currentPage === '')) {
+    if (isTrader && (currentPage === 'dashboard' || currentPage === 'buyer-dashboard' || currentPage === '')) {
       return <BuyerDashboard />;
     }
 
-    if (profile?.role === 'farmer') return <FarmerDashboard />;
-    if (profile?.role === 'buyer') return <BuyerDashboard />;
-    return <Login />;
+    if (isFarmer) return <FarmerDashboard />;
+    if (isTrader) return <BuyerDashboard />;
+    return <FarmerDashboard />;
   };
 
   return (
@@ -103,6 +117,7 @@ export default function App() {
       <AppHeader title={pageTitle.title} subtitle={pageTitle.subtitle} />
       {renderPage()}
       <MobileBottomNav currentPage={currentPage} onNavigate={handleNavigate} userRole={profile?.role} />
+      <ToastViewport />
     </>
   );
 }

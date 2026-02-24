@@ -159,7 +159,8 @@ export default function Community() {
             <div className="mb-3 h-14 w-14 rounded-full bg-slate-200" />
             <h2 className="text-base font-semibold text-[var(--km-text)]">{profile?.full_name || t('appName', 'KisanMandi')}</h2>
             <p className="mt-1 text-sm text-[var(--km-muted)]">
-              {(profile?.role || t('profile', 'Member')).toUpperCase()} {profile?.district ? `- ${profile.district}` : ''}
+              {profile?.role ? t(profile.role, profile.role) : t('member', 'Member')}
+              {profile?.district ? ` | ${t('district', 'District')}: ${profile.district}` : ''}
             </p>
             <p className="mt-3 text-sm text-[var(--km-muted)]">
               {t('postsCommentsUpdates', 'Posts, comments and crop updates')}

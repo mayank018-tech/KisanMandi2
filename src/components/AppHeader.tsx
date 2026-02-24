@@ -3,6 +3,7 @@ import { Bell, History, LogOut, Menu, Settings, UserCircle2, Users, X } from 'lu
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { navigateTo } from '../lib/navigation';
+import { supabase } from '../lib/supabase';
 import {
   listMyNotifications,
   markNotificationRead,
@@ -47,6 +48,34 @@ export default function AppHeader({ title, subtitle }: AppHeaderProps) {
       }
     };
     void load();
+  }, [profile?.id]);
+
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel(`header-notifications:${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${profile.id}` },
+        async () => {
+          try {
+            const [items, count] = await Promise.all([
+              listMyNotifications(profile.id, 10),
+              unreadNotificationCount(profile.id),
+            ]);
+            setNotifications(items);
+            setUnread(count);
+          } catch (err) {
+            console.error('Failed syncing notifications', err);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void channel.unsubscribe();
+    };
   }, [profile?.id]);
 
   return (

@@ -54,7 +54,15 @@ export default function PostCard({ post, onDeleted }: PostCardProps) {
   const [commentLoading, setCommentLoading] = useState(false);
 
   const postedImages = useMemo(() => post.post_images || [], [post.post_images]);
-  const location = [post.user_profiles?.district, post.user_profiles?.state].filter(Boolean).join(', ');
+  const location = [
+    post.user_profiles?.district ? `${t('district', 'District')}: ${post.user_profiles.district}` : '',
+    post.user_profiles?.state ? `${t('state', 'State')}: ${post.user_profiles.state}` : '',
+  ]
+    .filter(Boolean)
+    .join(' | ');
+  const translatedRole = post.user_profiles?.role
+    ? t(post.user_profiles.role, roleLabel(post.user_profiles.role))
+    : t('member', 'Member');
   const isOwner = profile?.id === post.author_id;
 
   const handleLike = async () => {
@@ -155,7 +163,7 @@ export default function PostCard({ post, onDeleted }: PostCardProps) {
           <div>
             <div className="text-sm font-semibold text-[var(--km-text)]">{post.user_profiles?.full_name || t('appName', 'KisanMandi')}</div>
             <div className="text-xs text-[var(--km-muted)]">
-              {roleLabel(post.user_profiles?.role)}
+              {translatedRole}
               {location ? ` | ${location}` : ''}
             </div>
             <div className="text-xs text-[var(--km-muted)]">{formatTimeAgo(post.created_at)}</div>

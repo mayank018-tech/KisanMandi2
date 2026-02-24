@@ -232,7 +232,9 @@ export default function MandiPrices() {
                           <div className="text-sm font-semibold text-gray-900">{price.crop_name}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-700">{price.district}, {price.state}</div>
+                          <div className="text-sm text-gray-700">
+                            {t('district', 'District')}: {price.district} | {t('state', 'State')}: {price.state}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-700">{price.mandi_name}</div>

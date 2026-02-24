@@ -274,6 +274,9 @@ export default function TraderDashboard() {
                       <MapPin className="h-4 w-4" />
                       <span>{listing.location}</span>
                     </div>
+                    <div className="mb-2 text-xs text-[var(--km-muted)]">
+                      {t('district', 'District')}: {listing.user_profiles?.district || '-'} | {t('state', 'State')}: {listing.user_profiles?.state || '-'}
+                    </div>
 
                     <button
                       type="button"
@@ -282,7 +285,9 @@ export default function TraderDashboard() {
                           id: listing.farmer_id,
                           name: listing.user_profiles?.full_name || t('unknownFarmer', 'Unknown Farmer'),
                           phone: listing.contact_number,
-                          location: listing.location,
+                          location: `${t('location', 'Location')}: ${listing.location} | ${t('district', 'District')}: ${
+                            listing.user_profiles?.district || '-'
+                          } | ${t('state', 'State')}: ${listing.user_profiles?.state || '-'}`,
                         })
                       }
                       className="mb-3 text-sm font-medium text-[var(--km-primary)] hover:underline"

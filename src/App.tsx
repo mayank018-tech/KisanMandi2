@@ -1,28 +1,38 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './contexts/AuthContext';
 import { useLanguage } from './contexts/LanguageContext';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import ForgetPassword from './pages/ForgetPassword';
-import FarmerDashboard from './pages/FarmerDashboard';
-import BuyerDashboard from './pages/BuyerDashboard';
-import MandiPrices from './pages/MandiPrices';
-import Community from './pages/Community';
-import Chat from './pages/Chat';
-import TraderDashboard from './pages/TraderDashboard';
 import MobileBottomNav from './components/MobileBottomNav';
 import AppHeader from './components/AppHeader';
-import Profile from './pages/Profile';
-import MyNetwork from './pages/MyNetwork';
-import ListingHistory from './pages/ListingHistory';
-import NotificationsPage from './pages/NotificationsPage';
-import Settings from './pages/Settings';
 import ToastViewport from './components/common/ToastViewport';
-import Listings from './pages/Listings';
+
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const ForgetPassword = lazy(() => import('./pages/ForgetPassword'));
+const FarmerDashboard = lazy(() => import('./pages/FarmerDashboard'));
+const BuyerDashboard = lazy(() => import('./pages/BuyerDashboard'));
+const MandiPrices = lazy(() => import('./pages/MandiPrices'));
+const Community = lazy(() => import('./pages/Community'));
+const Chat = lazy(() => import('./pages/Chat'));
+const TraderDashboard = lazy(() => import('./pages/TraderDashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const MyNetwork = lazy(() => import('./pages/MyNetwork'));
+const ListingHistory = lazy(() => import('./pages/ListingHistory'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Listings = lazy(() => import('./pages/Listings'));
+
+function PageLoader({ label }: { label: string }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-xl font-semibold">{label}</div>
+    </div>
+  );
+}
 
 export default function App() {
   const { user, profile, loading } = useAuth();
   const { t } = useLanguage();
+  const loadingLabel = t('loading', 'Loading...');
   const role = (profile?.role || '').toLowerCase();
   const isFarmer = role === 'farmer';
   const isTrader = role === 'buyer' || role === 'trader';
@@ -66,28 +76,20 @@ export default function App() {
   }, [currentPage, t]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl font-semibold">Loading...</div>
-      </div>
-    );
+    return <PageLoader label={loadingLabel} />;
   }
 
   if (!user) {
-    if (currentPage === 'signup') return <Signup />;
-    if (currentPage === 'forgot-password') return <ForgetPassword />;
-    return <Login />;
-  }
-
-  if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl font-semibold">{t('loading', 'Loading...')}</div>
-      </div>
+      <Suspense fallback={<PageLoader label={loadingLabel} />}>
+        {currentPage === 'signup' ? <Signup /> : currentPage === 'forgot-password' ? <ForgetPassword /> : <Login />}
+      </Suspense>
     );
   }
 
   const renderPage = () => {
+    if (!profile) return <PageLoader label={loadingLabel} />;
+
     if (currentPage === 'community') return <Community />;
     if (currentPage === 'chat') return <Chat />;
     if (currentPage === 'trader-dashboard' || currentPage === 'browse-listings') return <TraderDashboard />;
@@ -115,7 +117,9 @@ export default function App() {
   return (
     <>
       <AppHeader title={pageTitle.title} subtitle={pageTitle.subtitle} />
-      {renderPage()}
+      <Suspense fallback={<PageLoader label={loadingLabel} />}>
+        {renderPage()}
+      </Suspense>
       <MobileBottomNav currentPage={currentPage} onNavigate={handleNavigate} userRole={profile?.role} />
       <ToastViewport />
     </>

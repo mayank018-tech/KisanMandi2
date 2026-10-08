@@ -7,8 +7,8 @@ alter table if exists public.conversations
 with conversation_pairs as (
   select
     cp.conversation_id,
-    min(cp.user_id)::text as user_a,
-    max(cp.user_id)::text as user_b,
+    min(cp.user_id::text) as user_a,
+    max(cp.user_id::text) as user_b,
     count(*) as participant_count
   from public.conversation_participants cp
   group by cp.conversation_id

@@ -26,10 +26,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then((res: any) => {
       const session = (res.data?.session as Session) ?? null;
       setUser(session?.user ?? null);
+      setLoading(false); // <--- unblock app render
       if (session?.user) {
         fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
       }
     });
 
@@ -60,8 +59,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
